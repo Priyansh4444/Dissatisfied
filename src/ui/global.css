@@ -1,0 +1,73 @@
+* {
+	box-sizing: border-box;
+}
+
+:root {
+	color-scheme: dark;
+}
+
+body {
+	margin: 0;
+	font-family:
+		system-ui,
+		-apple-system,
+		BlinkMacSystemFont,
+		'Segoe UI',
+		Roboto,
+		Oxygen,
+		Ubuntu,
+		Cantarell,
+		'Open Sans',
+		'Helvetica Neue',
+		sans-serif;
+
+	/* force standard font-size for Chrome */
+	font-size: 1rem;
+
+	/* dark mode base */
+	background: #0b0f12;
+	color: #e5e7eb;
+}
+
+/* layout */
+body {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	min-height: 100vh;
+}
+
+main {
+	text-align: center;
+	padding: 16px;
+}
+
+/* cool Dissatisfied heading */
+h1 {
+	margin: 0 0 8px;
+	font-size: 2rem;
+	font-weight: 800;
+	letter-spacing: 0.04em;
+	line-height: 1.1;
+	color: transparent;
+	background-image: linear-gradient(
+		135deg,
+		#7c3aed 0%,
+		#22d3ee 50%,
+		#a3e635 100%
+	);
+	-webkit-background-clip: text;
+	background-clip: text;
+	text-transform: uppercase;
+}
+
+/* replace whatever heading text with 'Dissatisfied' */
+h1::before {
+	content: 'Dissatisfied';
+}
+
+/* subtle paragraph styling */
+p {
+	margin: 0.25rem 0 0;
+	color: #9ca3af;
+}
