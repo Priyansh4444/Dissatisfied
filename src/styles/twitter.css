@@ -1,0 +1,35 @@
+[data-testid='sidebarColumn'],
+[data-testid='chat-drawer-root'] {
+	display: none !important;
+}
+
+.css-175oi2r.r-aqfbo4.r-gtdqiz.r-1gn8etr.r-4zbufd.r-1g40b8q {
+	display: none !important;
+	/* 6th inner nested child of main (discluding main), basically the top bar with is post, or timeline/nextjs stuff */
+	/*only hide if the immediate next div has more than one class name*/
+}
+header {
+	display: none !important;
+}
+
+/* 4th child of main immediate, holding both  data-testid="primaryColumn" and data-testid="sideBarColumn" divs*/
+div:has([data-testid='primaryColumn']) {
+	position: relative !important;
+	width: 95vw !important;
+	display: flex !important;
+	justify-content: center !important;
+}
+
+/*div data-testid="primaryColumn"*/
+[data-testid='primaryColumn'] {
+	width: 80% !important;
+	max-width: 80% !important;
+	position: absolute !important;
+	div {
+		max-width: 100% !important;
+	}
+}
+
+article {
+	width: 100% !important;
+}
