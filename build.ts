@@ -20,7 +20,6 @@ async function buildExtension() {
 		entrypoints: [
 			join('src', 'background.ts'),
 			join('src', 'ui', 'options', 'index.html'),
-			join('src', 'ui', 'popup', 'index.html'),
 		],
 		outdir: 'dist',
 		target: 'browser',

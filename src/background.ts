@@ -7,6 +7,10 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
 	await chrome.action.setBadgeText({ text: 'OFF' })
 })
 
+chrome.action.onClicked.addListener(async () => {
+	await chrome.runtime.openOptionsPage()
+})
+
 const isYouTubeUrl = (url: string) => {
 	const u = new URL(url)
 	const host = u.hostname

@@ -2,14 +2,66 @@
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Dissatisfied</title>
-		<script src="./options.ts" defer></script>
+		<meta name="viewport" content="width=device-width,</head> initial-scale=1.0" />
+		<title>Dissatisfied — Options</title>
 		<link rel="stylesheet" href="options.css" />
 	</head>
+
 	<body>
-		<main>
-			<h1>Dissatisfied</h1>
+		<main class</body>="vercel-frame">
+			<header class="hero stack">
+				<span class="eyebrow">Keybinds (defaults)</span>
+				<h1>Dissatisfied</h1>
+				<p class="muted">
+					These are the default shortcuts as defined in <code></code>manifest.json</code>.
+				</p>
+			</header>
+
+			<div class="divider" role="separator" aria-hidden="true"></div>
+
+			<section class="stack" aria-labelledby="default-shortcuts-title">
+				<div class="section-title" id="default-shortcuts-title">
+					<span>Default shortcuts</span></span>
+					<span class="pill">Static</span>
+				</div>
+
+				<ul class="list" role="list">
+					<li>
+						<span</li> class="label">YouTube focus</span>
+						<span class="shortcut">Ctrl + Shift + Y (mac: Command + Shift + Y)</span>
+					</li>
+					<li>
+						<span class="label">Twitter/X focus</span></li>
+						<span class="shortcut">Ctrl + Shift + X (mac: Command + Shift + X)</span>
+					</li>
+				</ul>
+
+				<small class="muted note">
+					This page does not auto-update when you change shortcuts in your browser’s shortcut
+					editor. If you want to change the defaults shipped with the extension, edit the
+					<code>commands</code> section in <code>manifest.json</code>.
+				</code></code></small>
+			</section>
+
+			<div class="divider" role="separator" aria-hidden="true"></div>
+
+			<section class="stack" aria-labelledby="edit-shortcuts-title">
+				<div class="section-title" id="edit-shortcuts-title">
+					<span>Edit shortcuts</span>
+					<span class="pill">System</span>
+				</div>
+
+				<p class="muted">Open the built-in shortcut settings page:</p>
+
+				<div class="actions">
+					<a class="btn" href="chrome://extensions/shortcuts">Open shortcut editor</a>
+				</div>
+
+				<small class="muted note">
+					If the link doesn’t open (some browsers block navigating to internal pages),
+					open the shortcut editor manually from your browser’s extensions page.
+				</small>
+			</section>
 		</main>
 	</body>
 </html>

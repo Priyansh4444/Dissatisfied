@@ -1,73 +1,344 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap');
+
 * {
 	box-sizing: border-box;
 }
 
 :root {
 	color-scheme: dark;
+
+	--bg: #000;
+	--surface: #050505;
+
+	--text: rgba(255, 255, 255, 0.92);
+	--muted: rgba(255, 255, 255, 0.62);
+
+	--line: rgba(255, 255, 255, 0.14);
+	--line-soft: rgba(255, 255, 255, 0.08);
+
+	--red: #ff2d2d;
+	--blue: #00a3ff;
+
+	/* frame geometry */
+	--frame-pad: 16px;
+	--corner: 20px; /* size of the corner “caps” */
+	--corner-stroke: 1px;
+	--corner-extend: 14px; /* how far the corner lines extend outward */
+	--dash: 7px;
+	--gap: 6px;
+}
+
+html,
+body {
+	height: 100%;
 }
 
 body {
 	margin: 0;
+	padding: 20px;
+
 	font-family:
-		system-ui,
-		-apple-system,
-		BlinkMacSystemFont,
-		'Segoe UI',
-		Roboto,
-		Oxygen,
-		Ubuntu,
-		Cantarell,
-		'Open Sans',
-		'Helvetica Neue',
-		sans-serif;
+		ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+		'Courier New', monospace;
+	font-size: 13px;
+	line-height: 1.55;
+	color: var(--text);
 
-	/* force standard font-size for Chrome */
-	font-size: 1rem;
+	/* subtle grid + tiny glows (kept) */
+	background:
+		linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+		linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+		radial-gradient(
+			700px 320px at 12% 16%,
+			rgba(255, 45, 45, 0.12),
+			transparent 55%
+		),
+		radial-gradient(
+			700px 320px at 88% 12%,
+			rgba(0, 163, 255, 0.12),
+			transparent 55%
+		),
+		linear-gradient(180deg, #050505 0%, #000 100%);
+	background-size:
+		48px 48px,
+		48px 48px,
+		auto,
+		auto,
+		auto;
+	background-attachment: fixed;
 
-	/* dark mode base */
-	background: #0b0f12;
-	color: #e5e7eb;
+	/* responsive centering */
+	display: grid;
+	place-items: center;
+
+	overflow-x: hidden;
 }
 
-/* layout */
-body {
+/* === The “Vercel snippet” frame === */
+.vercel-frame {
+	width: min(720px, 100%);
+	max-width: calc(100vw - 40px);
+
+	padding: var(--frame-pad);
+	padding-top: 5px;
+	background: linear-gradient(180deg, var(--surface) 0%, #000 100%);
+	color: var(--text);
+
+	position: relative;
+	isolation: isolate;
+
+	/* dashed outline */
+	border: 1px dashed var(--line);
+}
+
+/* inner “header bar” like a code block */
+.vercel-frame::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+
+	height: 28px;
+	background: rgba(255, 255, 255, 0.03);
+	border-bottom: 1px solid var(--line-soft);
+	pointer-events: none;
+	z-index: 0;
+}
+
+/* Corner caps + outward extensions (drawn with layered gradients) */
+.vercel-frame::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+
+	/* We draw 8 little strokes:
+				- 4 corner caps (inside the frame)
+				- 4 extensions (outside-ish looking, but still drawn within ::after)
+				The trick: place them at corners and let them "extend" using background-size. */
+	background:
+		/* top-left cap */
+		linear-gradient(var(--line), var(--line)) left top / var(--corner)
+			var(--corner-stroke) no-repeat,
+		linear-gradient(var(--line), var(--line)) left top / var(--corner-stroke)
+			var(--corner) no-repeat,
+		/* top-right cap */ linear-gradient(var(--line), var(--line)) right top /
+			var(--corner) var(--corner-stroke) no-repeat,
+		linear-gradient(var(--line), var(--line)) right top / var(--corner-stroke)
+			var(--corner) no-repeat,
+		/* bottom-left cap */ linear-gradient(var(--line), var(--line)) left
+			calc(100% + 0.5px) / var(--corner) var(--corner-stroke) no-repeat,
+		linear-gradient(var(--line), var(--line)) left calc(100% + 0.5px) /
+			var(--corner-stroke) var(--corner) no-repeat,
+		/* bottom-right cap */ linear-gradient(var(--line), var(--line)) right
+			calc(100% + 0.5px) / var(--corner) var(--corner-stroke) no-repeat,
+		linear-gradient(var(--line), var(--line)) right calc(100% + 0.5px) /
+			var(--corner-stroke) var(--corner) no-repeat,
+		/* outward “extensions” (faux outside) */
+			linear-gradient(var(--line-soft), var(--line-soft)) left top /
+			calc(var(--corner) + var(--corner-extend)) var(--corner-stroke) no-repeat,
+		linear-gradient(var(--line-soft), var(--line-soft)) left top /
+			var(--corner-stroke) calc(var(--corner) + var(--corner-extend)) no-repeat,
+		linear-gradient(var(--line-soft), var(--line-soft)) right top /
+			calc(var(--corner) + var(--corner-extend)) var(--corner-stroke) no-repeat,
+		linear-gradient(var(--line-soft), var(--line-soft)) right top /
+			var(--corner-stroke) calc(var(--corner) + var(--corner-extend)) no-repeat,
+		linear-gradient(var(--line-soft), var(--line-soft)) left bottom /
+			calc(var(--corner) + var(--corner-extend)) var(--corner-stroke) no-repeat,
+		linear-gradient(var(--line-soft), var(--line-soft)) left bottom /
+			var(--corner-stroke) calc(var(--corner) + var(--corner-extend)) no-repeat,
+		linear-gradient(var(--line-soft), var(--line-soft)) right bottom /
+			calc(var(--corner) + var(--corner-extend)) var(--corner-stroke) no-repeat,
+		linear-gradient(var(--line-soft), var(--line-soft)) right bottom /
+			var(--corner-stroke) calc(var(--corner) + var(--corner-extend)) no-repeat;
+
+	/* pull the extension strokes “past” the dashed border visually */
+	pointer-events: none;
+	z-index: 1;
+	opacity: 0.9;
+}
+
+/* Ensure content sits above decorations */
+.vercel-frame > * {
+	position: relative;
+	z-index: 2;
+	min-width: 0;
+}
+
+/* Layout helpers */
+.stack {
 	display: flex;
-	justify-content: center;
-	align-items: center;
-	min-height: 100vh;
+	flex-direction: column;
+	gap: 10px;
+	min-width: 0;
 }
 
-main {
-	text-align: center;
-	padding: 16px;
+.hero {
+	gap: 8px;
 }
 
-/* cool Dissatisfied heading */
+.divider {
+	height: 1px;
+	width: 100%;
+	background: rgba(255, 255, 255, 0.1);
+	margin: 6px 0;
+}
+
+/* Typography */
 h1 {
-	margin: 0 0 8px;
-	font-size: 2rem;
-	font-weight: 800;
-	letter-spacing: 0.04em;
-	line-height: 1.1;
+	margin: 0;
+	font-size: 18px;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	line-height: 1.05;
+	text-transform: uppercase;
+
+	font-family:
+		'Instrument Serif', ui-serif, Georgia, Cambria, 'Times New Roman', Times,
+		serif;
+
 	color: transparent;
-	background-image: linear-gradient(
-		135deg,
-		#7c3aed 0%,
-		#22d3ee 50%,
-		#a3e635 100%
-	);
+	background-image: linear-gradient(90deg, var(--red), var(--blue));
 	-webkit-background-clip: text;
 	background-clip: text;
-	text-transform: uppercase;
 }
 
-/* replace whatever heading text with 'Dissatisfied' */
-h1::before {
-	content: 'Dissatisfied';
-}
-
-/* subtle paragraph styling */
 p {
-	margin: 0.25rem 0 0;
-	color: #9ca3af;
+	margin: 0;
+	color: var(--muted);
+}
+
+small,
+.muted {
+	color: var(--muted);
+	font-size: 12px;
+}
+
+/* Section title row */
+.section-title {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+
+	font-size: 12px;
+	font-weight: 800;
+	color: rgba(255, 255, 255, 0.86);
+
+	min-width: 0;
+}
+
+.pill {
+	display: inline-flex;
+	align-items: center;
+	padding: 6px 8px;
+
+	border: 1px solid var(--line-soft);
+	color: rgba(255, 255, 255, 0.7);
+	background: transparent;
+
+	font-weight: 800;
+	font-size: 11px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+
+	white-space: nowrap;
+}
+
+/* List: responsive + no overflow */
+.list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+
+	min-width: 0;
+}
+
+.list li {
+	padding: 10px 12px;
+	border: 1px solid var(--line-soft);
+	background: rgba(255, 255, 255, 0.02);
+
+	display: flex;
+	align-items: center;
+	gap: 12px;
+
+	/* allow wrapping instead of forcing overflow */
+	flex-wrap: wrap;
+	min-width: 0;
+}
+
+.label {
+	flex: 1 1 180px;
+	min-width: 140px;
+}
+
+/* “Keycap” */
+.shortcut {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+
+	padding: 6px 8px;
+	border: 1px solid var(--line-soft);
+	background: transparent;
+	color: rgba(255, 255, 255, 0.78);
+
+	font-size: 11px;
+	font-weight: 800;
+	letter-spacing: 0.08em;
+
+	white-space: nowrap;
+	max-width: 100%;
+}
+
+/* Actions */
+.actions {
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+	justify-content: flex-start;
+	min-width: 0;
+}
+
+button,
+.btn {
+	appearance: none;
+	border: 1px solid var(--line);
+	background: rgba(0, 0, 0, 0.35);
+
+	color: rgba(255, 255, 255, 0.9);
+	font-weight: 800;
+	letter-spacing: 0.04em;
+
+	padding: 10px 12px;
+	cursor: pointer;
+
+	max-width: 100%;
+}
+.eyebrow {
+	padding-bottom: 8px;
+}
+
+button:hover,
+.btn:hover {
+	border-color: rgba(0, 163, 255, 0.7);
+	box-shadow: 0 0 0 1px rgba(0, 163, 255, 0.25);
+}
+
+button:active,
+.btn:active {
+	border-color: rgba(255, 45, 45, 0.75);
+	box-shadow: 0 0 0 1px rgba(255, 45, 45, 0.25);
+	transform: translateY(1px);
+}
+
+.note {
+	padding: 10px 12px;
+	border: 1px solid var(--line-soft);
+	background: rgba(255, 255, 255, 0.02);
 }
