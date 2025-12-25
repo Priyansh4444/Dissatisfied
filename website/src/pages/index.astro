@@ -107,7 +107,7 @@ const description = 'Focus without the noise.';
         position: relative;
         width: min(90vw, 1000px);
         height: min(65vh, 680px);
-        transform: translateY(18vh);
+        transform: translateY(12vh);
       }
 
       .screenshots img {
@@ -151,10 +151,13 @@ const description = 'Focus without the noise.';
 
       /* ========== Footer & Badge ========== */
       .footer {
-        position: relative;
-        z-index: 10;
+        position: fixed;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 30;
         text-align: center;
-        margin: 1.75rem 0 0;
+        margin: 0;
         padding: 0.6rem 0.9rem;
         background: #000;
         border: 1px solid var(--border-color);
@@ -170,8 +173,11 @@ const description = 'Focus without the noise.';
       }
 
       .love-badge {
-        position: relative;
-        z-index: 10;
+        position: fixed;
+        bottom: 5.25rem;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 30;
         font-family: var(--font-serif);
         font-size: 0.95rem;
         letter-spacing: 0.02em;
@@ -181,7 +187,7 @@ const description = 'Focus without the noise.';
         border-radius: 6px;
         box-shadow: var(--card-shadow);
         display: inline-block;
-        margin-top: 0.75rem;
+        margin: 0;
       }
     </style>
   </head>
