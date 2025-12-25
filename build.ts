@@ -63,6 +63,7 @@ watch(
 		console.log(filename)
 
 		// adapt to your project
+		if (filename.startsWith('website' + pathSeparator)) return
 		if (
 			!filename.startsWith('src' + pathSeparator) &&
 			!filename.startsWith('public' + pathSeparator) &&
