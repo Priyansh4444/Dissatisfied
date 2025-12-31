@@ -1,6 +1,6 @@
 {
 	"$schema": "https://json.schemastore.org/webextension",
-	"manifest_version": 3,
+	"manifest_version": 2,
 	"name": "Dissatisfied",
 	"description": "Get rid of parts of UI, when focussing on content.",
 	"version": "0.1.2",
@@ -11,8 +11,8 @@
 		"128": "icon128.png"
 	},
 	"homepage_url": "https://example.com/me/myextension",
-	"permissions": ["activeTab", "scripting"],
-	"host_permissions": [
+	"permissions": [
+		"activeTab",
 		"https://www.youtube.com/*",
 		"https://twitter.com/*",
 		"https://www.twitter.com/*",
@@ -20,9 +20,10 @@
 		"https://www.x.com/*"
 	],
 	"background": {
-		"service_worker": "background.js"
+		"scripts": ["background.js"],
+		"persistent": false
 	},
-	"action": {
+	"browser_action": {
 		"default_icon": "icon128.png",
 		"default_title": "Dissatisfied"
 	},

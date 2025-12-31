@@ -4,7 +4,10 @@ node_modules
 # output
 out
 dist
+dist-firefox
+dist-safari
 *.tgz
+*.zip
 
 # code coverage
 coverage

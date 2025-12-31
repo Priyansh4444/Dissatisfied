@@ -11,6 +11,12 @@
 		"128": "icon128.png"
 	},
 	"homepage_url": "https://example.com/me/myextension",
+	"browser_specific_settings": {
+		"gecko": {
+			"id": "dissatisfied@pronsh.dev",
+			"strict_min_version": "109.0"
+		}
+	},
 	"permissions": ["activeTab", "scripting"],
 	"host_permissions": [
 		"https://www.youtube.com/*",
@@ -20,7 +26,8 @@
 		"https://www.x.com/*"
 	],
 	"background": {
-		"service_worker": "background.js"
+		"scripts": ["background.js"],
+		"type": "module"
 	},
 	"action": {
 		"default_icon": "icon128.png",

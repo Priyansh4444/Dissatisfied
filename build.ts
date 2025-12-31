@@ -5,35 +5,61 @@ import { watch } from 'fs'
 // @ts-expect-error: we don't care about types, this is a string
 import chromePolyfill from 'webextension-polyfill' with { type: 'text' }
 
-async function buildExtension() {
+type BuildTarget = 'chrome' | 'firefox' | 'safari'
+
+async function buildExtension(target: BuildTarget = 'chrome') {
+	const outdir = target === 'chrome' ? 'dist' : `dist-${target}`
+
 	// remove dist folder (if present) before rebuild
-	await $`rm -r dist`.nothrow().quiet()
+	await $`rm -r ${outdir}`.nothrow().quiet()
+
+	// Select the appropriate manifest and background script
+	const manifestFile =
+		target === 'chrome'
+			? './public/manifest.json'
+			: `./public/manifest.${target}.json`
+
+	const backgroundScript =
+		target === 'safari'
+			? join('src', 'background.safari.ts')
+			: join('src', 'background.ts')
 
 	const manifest = (
-		await import('./public/manifest.json', {
+		await import(manifestFile, {
 			with: { type: 'json' },
 		})
 	).default
 
-	// extension build, change on your needs
+	// extension build
 	await build({
-		entrypoints: [
-			join('src', 'background.ts'),
-			join('src', 'ui', 'options', 'index.html'),
-		],
-		outdir: 'dist',
+		entrypoints: [backgroundScript],
+		outdir,
 		target: 'browser',
 		minify: false,
 		banner: `/* ${manifest.name}\n * Copyright (c) ${new Date().getFullYear()} ${manifest.author}\n */\n\n${chromePolyfill}`,
 	})
 
-	// copy public (no build needed) files after build (ex. manifest.json, icon.png)
-	await $`cp -r public/* dist`
+	// copy public files (excluding browser-specific manifests)
+	await $`cp public/icon*.png ${outdir}/`
+
+	// Copy the appropriate manifest for the target browser
+	if (target === 'chrome') {
+		await $`cp public/manifest.json ${outdir}/`
+	} else {
+		await $`cp public/manifest.${target}.json ${outdir}/manifest.json`
+	}
 
 	// copy static asset folders preserving structure
 	// - copy global styles (e.g., src/styles) -> dist/styles
-	await $`mkdir -p dist/styles`
-	await $`cp -r src/styles/* dist/styles`.nothrow().quiet()
+	await $`mkdir -p ${outdir}/styles`
+	await $`cp -r src/styles/* ${outdir}/styles`.nothrow().quiet()
+
+	// copy UI files preserving directory structure
+	await $`mkdir -p ${outdir}/ui/options`
+	await $`cp -r src/ui/options/* ${outdir}/ui/options`.nothrow().quiet()
+
+	// copy global CSS if it exists
+	await $`cp src/ui/global.css ${outdir}/ui/`.nothrow().quiet()
 
 	// remove manifest.json $schema key after build to prevent browser warning
 	const contents = JSON.stringify(manifest, null, '\t')
@@ -41,14 +67,44 @@ async function buildExtension() {
 		.split('\n')
 		.filter((a) => !a.trim().startsWith('"$schema"'))
 		.join('\n')
-	await Bun.write(Bun.file(join('dist', 'manifest.json')), newContents)
+	await Bun.write(Bun.file(join(outdir, 'manifest.json')), newContents)
+
+	// Update options page links for Firefox and Safari
+	if (target === 'firefox' || target === 'safari') {
+		const optionsPath = join(outdir, 'ui', 'options', 'index.html')
+		const optionsHtml = await Bun.file(optionsPath).text()
+		const browserPrefix = target === 'firefox' ? 'about:addons' : 'safari'
+		const updatedHtml = optionsHtml.replace(
+			'chrome://extensions/shortcuts',
+			target === 'firefox'
+				? 'about:addons'
+				: 'Open Safari → Settings → Extensions',
+		)
+		await Bun.write(Bun.file(optionsPath), updatedHtml)
+	}
+
+	console.log(`✓ Built ${target} extension to ${outdir}/`)
 }
 
-await buildExtension()
+// Check if we're building for a specific target or all targets
+const targetArg = process.argv[2]
 
 if (process.env.NODE_ENV === 'production') {
+	if (targetArg === 'all') {
+		// Build all targets
+		await buildExtension('chrome')
+		await buildExtension('firefox')
+		await buildExtension('safari')
+	} else {
+		// Build specific target or default to chrome
+		const target = (targetArg as BuildTarget) || 'chrome'
+		await buildExtension(target)
+	}
 	process.exit()
 }
+
+// Development mode - watch for changes (Chrome only)
+await buildExtension('chrome')
 
 console.log('Watching for changes...')
 watch(
@@ -73,7 +129,7 @@ watch(
 			return
 
 		console.write(`Rebuilding, file ${filename} changed.`)
-		await buildExtension()
+		await buildExtension('chrome')
 		console.write(' Done.\n')
 	},
 )

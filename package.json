@@ -6,6 +6,14 @@
 	"scripts": {
 		"dev": "bun --watch build.ts",
 		"build": "NODE_ENV=\"production\" bun build.ts",
+		"build:chrome": "NODE_ENV=\"production\" bun build.ts chrome",
+		"build:firefox": "NODE_ENV=\"production\" bun build.ts firefox",
+		"build:safari": "NODE_ENV=\"production\" bun build.ts safari",
+		"build:all": "NODE_ENV=\"production\" bun build.ts all",
+		"package:chrome": "bun run build:chrome && cd dist && zip -r ../dissatisfied-chrome.zip . && cd ..",
+		"package:firefox": "bun run build:firefox && cd dist-firefox && zip -r ../dissatisfied-firefox.zip . && cd ..",
+		"package:safari": "bun run build:safari && cd dist-safari && zip -r ../dissatisfied-safari.zip . && cd ..",
+		"package:all": "bun run build:all && cd dist && zip -r ../dissatisfied-chrome.zip . && cd .. && cd dist-firefox && zip -r ../dissatisfied-firefox.zip . && cd .. && cd dist-safari && zip -r ../dissatisfied-safari.zip . && cd ..",
 		"format": "prettier --write ."
 	},
 	"devDependencies": {
