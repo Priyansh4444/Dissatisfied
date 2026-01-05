@@ -194,22 +194,6 @@ async function removeYouTubeStyles(tabId: number): Promise<void> {
 // Apply Twitter styles to a tab
 async function applyTwitterStyles(tabId: number): Promise<void> {
 	try {
-		// First, inject CSS variable for Twitter width
-		const twitterWidth = await getStoredState(STORAGE_KEYS.TWITTER_WIDTH)
-		const width = twitterWidth || DEFAULTS.TWITTER_WIDTH
-
-		await chrome.scripting.executeScript({
-			target: { tabId },
-			func: (widthValue: number) => {
-				document.documentElement.style.setProperty(
-					'--twitter-width',
-					`${widthValue}%`,
-				)
-			},
-			args: [width],
-		})
-
-		// Then inject the CSS file
 		await chrome.scripting.insertCSS({
 			target: { tabId },
 			files: ['styles/twitter.css'],

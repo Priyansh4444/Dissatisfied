@@ -30,13 +30,25 @@ async function buildExtension(target: BuildTarget = 'chrome') {
 		})
 	).default
 
-	// extension build
+	// Build background script
 	await build({
 		entrypoints: [backgroundScript],
 		outdir,
 		target: 'browser',
 		minify: false,
 		banner: `/* ${manifest.name}\n * Copyright (c) ${new Date().getFullYear()} ${manifest.author}\n */\n\n${chromePolyfill}`,
+	})
+
+	// Build content scripts
+	await build({
+		entrypoints: [
+			join('src', 'content-youtube.ts'),
+			join('src', 'content-twitter.ts'),
+		],
+		outdir,
+		target: 'browser',
+		minify: false,
+		banner: `/* ${manifest.name} Content Scripts\n * Copyright (c) ${new Date().getFullYear()} ${manifest.author}\n */`,
 	})
 
 	// copy public files (excluding browser-specific manifests)

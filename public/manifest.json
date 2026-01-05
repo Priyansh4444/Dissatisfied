@@ -11,7 +11,7 @@
 		"128": "icon128.png"
 	},
 	"homepage_url": "https://example.com/me/myextension",
-	"permissions": ["activeTab", "scripting"],
+	"permissions": ["activeTab", "scripting", "storage", "tabs"],
 	"host_permissions": [
 		"https://www.youtube.com/*",
 		"https://twitter.com/*",
@@ -45,5 +45,40 @@
 	"options_ui": {
 		"page": "ui/options/index.html",
 		"open_in_tab": true
-	}
+	},
+	"content_scripts": [
+		{
+			"matches": [
+				"*://www.youtube.com/*",
+				"*://m.youtube.com/*",
+				"*://youtu.be/*"
+			],
+			"js": ["content-youtube.js"],
+			"run_at": "document_end"
+		},
+		{
+			"matches": [
+				"*://twitter.com/*",
+				"*://www.twitter.com/*",
+				"*://x.com/*",
+				"*://www.x.com/*"
+			],
+			"js": ["content-twitter.js"],
+			"run_at": "document_end"
+		}
+	],
+	"web_accessible_resources": [
+		{
+			"resources": ["styles/youtube.css", "styles/twitter.css"],
+			"matches": [
+				"*://www.youtube.com/*",
+				"*://m.youtube.com/*",
+				"*://youtu.be/*",
+				"*://twitter.com/*",
+				"*://www.twitter.com/*",
+				"*://x.com/*",
+				"*://www.x.com/*"
+			]
+		}
+	]
 }
