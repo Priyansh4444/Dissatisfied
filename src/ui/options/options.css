@@ -209,3 +209,43 @@
 		font-size: 13px;
 	}
 }
+
+/* Shortcuts section styling */
+.disclaimer {
+	padding: 12px;
+	background: rgba(255, 193, 7, 0.1);
+	border-left: 3px solid #ffc107;
+	border-radius: 4px;
+	font-size: 13px;
+	margin-bottom: 12px;
+}
+
+.url-container {
+	display: flex;
+	gap: 8px;
+	margin-top: 12px;
+	align-items: center;
+}
+
+.url-input {
+	flex: 1;
+	padding: 8px 12px;
+	border: 1px solid var(--line-soft);
+	background: rgba(255, 255, 255, 0.02);
+	color: var(--text);
+	font-size: 13px;
+	border-radius: 4px;
+	outline: none;
+	font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+}
+
+.url-input:focus {
+	border-color: var(--blue);
+	background: rgba(255, 255, 255, 0.04);
+}
+
+.btn-sm {
+	padding: 8px 12px;
+	font-size: 12px;
+	min-width: auto;
+}

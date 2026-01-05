@@ -1,6 +1,7 @@
 // Storage keys - must match options.js
 const STORAGE_KEYS = {
-	PERSISTENCE_MODE: 'persistence_mode',
+	YOUTUBE_PERSISTENCE_MODE: 'youtube_persistence_mode',
+	TWITTER_PERSISTENCE_MODE: 'twitter_persistence_mode',
 	YOUTUBE_STATE: 'youtube_state',
 	TWITTER_STATE: 'twitter_state',
 	YOUTUBE_SESSIONS: 'youtube_sessions',
@@ -9,7 +10,8 @@ const STORAGE_KEYS = {
 
 // Default values
 const DEFAULTS = {
-	PERSISTENCE_MODE: 'tab',
+	YOUTUBE_PERSISTENCE_MODE: 'tab',
+	TWITTER_PERSISTENCE_MODE: 'tab',
 	TWITTER_WIDTH: 80,
 }
 
@@ -29,7 +31,10 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
 	if (reason === 'install') {
 		// Set default values
 		await chrome.storage.local.set({
-			[STORAGE_KEYS.PERSISTENCE_MODE]: DEFAULTS.PERSISTENCE_MODE,
+			[STORAGE_KEYS.YOUTUBE_PERSISTENCE_MODE]:
+				DEFAULTS.YOUTUBE_PERSISTENCE_MODE,
+			[STORAGE_KEYS.TWITTER_PERSISTENCE_MODE]:
+				DEFAULTS.TWITTER_PERSISTENCE_MODE,
 			[STORAGE_KEYS.TWITTER_WIDTH]: DEFAULTS.TWITTER_WIDTH,
 			[STORAGE_KEYS.YOUTUBE_STATE]: { enabled: false },
 			[STORAGE_KEYS.TWITTER_STATE]: { enabled: false },
@@ -96,9 +101,14 @@ async function setStoredState(key: string, value: any): Promise<void> {
 	await chrome.storage.local.set({ [key]: value })
 }
 
-async function getPersistenceMode(): Promise<'tab' | 'global'> {
-	const mode = await getStoredState(STORAGE_KEYS.PERSISTENCE_MODE)
-	return mode || DEFAULTS.PERSISTENCE_MODE
+async function getYoutubePersistenceMode(): Promise<'tab' | 'global'> {
+	const mode = await getStoredState(STORAGE_KEYS.YOUTUBE_PERSISTENCE_MODE)
+	return mode || DEFAULTS.YOUTUBE_PERSISTENCE_MODE
+}
+
+async function getTwitterPersistenceMode(): Promise<'tab' | 'global'> {
+	const mode = await getStoredState(STORAGE_KEYS.TWITTER_PERSISTENCE_MODE)
+	return mode || DEFAULTS.TWITTER_PERSISTENCE_MODE
 }
 
 async function saveTheaterSessions() {
@@ -239,37 +249,41 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 		return
 	}
 
-	const mode = await getPersistenceMode()
-
-	if (mode === 'global') {
-		// Global mode: check storage state and apply
-		if (isYouTubeUrl(tab.url)) {
+	// Check YouTube
+	if (isYouTubeUrl(tab.url)) {
+		const mode = await getYoutubePersistenceMode()
+		if (mode === 'global') {
 			const state = await getStoredState(STORAGE_KEYS.YOUTUBE_STATE)
 			if (state?.enabled) {
 				await applyYouTubeStyles(tabId)
 			} else {
 				await chrome.action.setBadgeText({ tabId, text: 'OFF' })
 			}
+		} else {
+			// Per-tab mode: check tab-specific state
+			const tabState = getTabState(tabId)
+			if (tabState.youtube) {
+				await applyYouTubeStyles(tabId)
+			}
 		}
+	}
 
-		if (isTwitterUrl(tab.url)) {
+	// Check Twitter
+	if (isTwitterUrl(tab.url)) {
+		const mode = await getTwitterPersistenceMode()
+		if (mode === 'global') {
 			const state = await getStoredState(STORAGE_KEYS.TWITTER_STATE)
 			if (state?.enabled) {
 				await applyTwitterStyles(tabId)
 			} else {
 				await chrome.action.setBadgeText({ tabId, text: 'OFF' })
 			}
-		}
-	} else {
-		// Per-tab mode: check tab-specific state
-		const tabState = getTabState(tabId)
-
-		if (isYouTubeUrl(tab.url) && tabState.youtube) {
-			await applyYouTubeStyles(tabId)
-		}
-
-		if (isTwitterUrl(tab.url) && tabState.twitter) {
-			await applyTwitterStyles(tabId)
+		} else {
+			// Per-tab mode: check tab-specific state
+			const tabState = getTabState(tabId)
+			if (tabState.twitter) {
+				await applyTwitterStyles(tabId)
+			}
 		}
 	}
 })
@@ -290,7 +304,7 @@ chrome.commands.onCommand.addListener(async (command) => {
 		return
 	}
 
-	const mode = await getPersistenceMode()
+	const mode = await getYoutubePersistenceMode()
 
 	if (mode === 'global') {
 		// Global mode: toggle for all tabs
@@ -342,7 +356,7 @@ chrome.commands.onCommand.addListener(async (command) => {
 		return
 	}
 
-	const mode = await getPersistenceMode()
+	const mode = await getTwitterPersistenceMode()
 
 	if (mode === 'global') {
 		// Global mode: toggle for all tabs
@@ -398,31 +412,29 @@ chrome.tabs.onActivated.addListener(async ({ tabId }) => {
 			return
 		}
 
-		const mode = await getPersistenceMode()
-
-		if (mode === 'global') {
-			// Check global state
-			if (isYouTubeUrl(tab.url)) {
+		// Check YouTube
+		if (isYouTubeUrl(tab.url)) {
+			const mode = await getYoutubePersistenceMode()
+			if (mode === 'global') {
 				const state = await getStoredState(STORAGE_KEYS.YOUTUBE_STATE)
 				const badgeText = state?.enabled ? 'ON' : 'OFF'
 				await chrome.action.setBadgeText({ tabId, text: badgeText })
-			}
-
-			if (isTwitterUrl(tab.url)) {
-				const state = await getStoredState(STORAGE_KEYS.TWITTER_STATE)
-				const badgeText = state?.enabled ? 'ON' : 'OFF'
-				await chrome.action.setBadgeText({ tabId, text: badgeText })
-			}
-		} else {
-			// Check per-tab state
-			const tabState = getTabState(tabId)
-
-			if (isYouTubeUrl(tab.url)) {
+			} else {
+				const tabState = getTabState(tabId)
 				const badgeText = tabState.youtube ? 'ON' : 'OFF'
 				await chrome.action.setBadgeText({ tabId, text: badgeText })
 			}
+		}
 
-			if (isTwitterUrl(tab.url)) {
+		// Check Twitter
+		if (isTwitterUrl(tab.url)) {
+			const mode = await getTwitterPersistenceMode()
+			if (mode === 'global') {
+				const state = await getStoredState(STORAGE_KEYS.TWITTER_STATE)
+				const badgeText = state?.enabled ? 'ON' : 'OFF'
+				await chrome.action.setBadgeText({ tabId, text: badgeText })
+			} else {
+				const tabState = getTabState(tabId)
 				const badgeText = tabState.twitter ? 'ON' : 'OFF'
 				await chrome.action.setBadgeText({ tabId, text: badgeText })
 			}

@@ -12,7 +12,6 @@
 	},
 	"homepage_url": "https://example.com/me/myextension",
 	"permissions": [
-		"activeTab",
 		"storage",
 		"tabs",
 		"https://www.youtube.com/*",

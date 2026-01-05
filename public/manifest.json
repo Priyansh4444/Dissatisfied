@@ -11,7 +11,7 @@
 		"128": "icon128.png"
 	},
 	"homepage_url": "https://example.com/me/myextension",
-	"permissions": ["activeTab", "scripting", "storage", "tabs"],
+	"permissions": ["scripting", "storage", "tabs"],
 	"host_permissions": [
 		"https://www.youtube.com/*",
 		"https://twitter.com/*",

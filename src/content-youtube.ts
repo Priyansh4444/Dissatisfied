@@ -4,14 +4,34 @@ const channel = new BroadcastChannel('dissatisfied-youtube')
 // Storage key
 const STORAGE_KEY = 'youtube_state'
 
-// Check if we're on a YouTube page
+// Check if we're on a YouTube video page (watch/embed or youtu.be links). Excludes home and shorts
 const isYouTubePage = () => {
 	const host = window.location.hostname
-	return (
-		host === 'www.youtube.com' ||
-		host === 'm.youtube.com' ||
-		host === 'youtu.be'
-	)
+	const path = window.location.pathname
+
+	// youtu.be short links -> path like '/<videoId>'
+	if (host === 'youtu.be') {
+		return path && path !== '/' && path.length > 1
+	}
+
+	// Only run on www.youtube.com and m.youtube.com
+	if (host === 'www.youtube.com' || host === 'm.youtube.com') {
+		// Watch page with v= param
+		if (path === '/watch') {
+			const params = new URLSearchParams(window.location.search)
+			return params.has('v')
+		}
+
+		// Embedded player pages (e.g., /embed/<id>)
+		if (path.startsWith('/embed/')) {
+			return true
+		}
+
+		// Exclude shorts, home, and other non-watch pages
+		return false
+	}
+
+	return false
 }
 
 // Track if we enabled theater mode
@@ -33,7 +53,9 @@ function applyStyles() {
 	setTimeout(() => {
 		const playerPage = document.querySelector('ytd-watch-flexy, ytd-watch-grid')
 		if (playerPage && !playerPage.hasAttribute('theater')) {
-			const btn = document.querySelector('.ytp-size-button') as HTMLButtonElement
+			const btn = document.querySelector(
+				'.ytp-size-button',
+			) as HTMLButtonElement
 			if (btn) {
 				btn.click()
 				weEnabledTheater = true
@@ -52,9 +74,13 @@ function removeStyles() {
 	// Revert theater mode only if we enabled it
 	if (weEnabledTheater) {
 		setTimeout(() => {
-			const playerPage = document.querySelector('ytd-watch-flexy, ytd-watch-grid')
+			const playerPage = document.querySelector(
+				'ytd-watch-flexy, ytd-watch-grid',
+			)
 			if (playerPage && playerPage.hasAttribute('theater')) {
-				const btn = document.querySelector('.ytp-size-button') as HTMLButtonElement
+				const btn = document.querySelector(
+					'.ytp-size-button',
+				) as HTMLButtonElement
 				if (btn) {
 					btn.click()
 				}

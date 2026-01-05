@@ -20,7 +20,7 @@
 			}
 		}
 	},
-	"permissions": ["activeTab", "scripting", "storage", "tabs"],
+	"permissions": ["scripting", "storage", "tabs"],
 	"host_permissions": [
 		"https://www.youtube.com/*",
 		"https://twitter.com/*",
