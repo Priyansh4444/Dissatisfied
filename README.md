@@ -1,5 +1,7 @@
 # Dissatisfied
 
+### NOTE: Safari version is not tested due to lack of access to Mac device.
+
 Get rid of parts of UI when focusing on content.
 
 A browser extension that provides keyboard shortcuts to toggle focus mode on YouTube and Twitter/X for a more immersive experience.
