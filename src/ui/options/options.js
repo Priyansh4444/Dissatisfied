@@ -308,6 +308,29 @@ function getShortcutsConfig(browser) {
 	return configs[browser] || configs.chrome
 }
 
+function getDefaultShortcuts(browser) {
+	const shortcuts = {
+		chrome: {
+			youtube: 'Ctrl + Shift + Y (mac: Command + Shift + Y)',
+			twitter: 'Ctrl + Shift + X (mac: Command + Shift + X)',
+		},
+		edge: {
+			youtube: 'Ctrl + Shift + Y (mac: Command + Shift + Y)',
+			twitter: 'Ctrl + Shift + X (mac: Command + Shift + X)',
+		},
+		firefox: {
+			youtube: 'Alt + Shift + Y',
+			twitter: 'Alt + Shift + X',
+		},
+		safari: {
+			youtube: 'Not supported',
+			twitter: 'Not supported',
+		},
+	}
+
+	return shortcuts[browser] || shortcuts.chrome
+}
+
 function renderShortcutsSection(browser) {
 	const config = getShortcutsConfig(browser)
 	const container = document.getElementById('shortcuts-config-container')
@@ -374,8 +397,41 @@ function copyShortcutsUrl() {
 		})
 }
 
+function renderDefaultShortcutsSection(browser) {
+	const shortcuts = getDefaultShortcuts(browser)
+	const container = document.getElementById('default-shortcuts-container')
+
+	if (!container) return
+
+	let html = '<ul class="list" role="list">'
+
+	if (browser === 'safari') {
+		html += `
+			<li>
+				<span class="label">Shortcuts</span>
+				<span class="shortcut">Not supported in Safari</span>
+			</li>
+		`
+	} else {
+		html += `
+			<li>
+				<span class="label">YouTube focus</span>
+				<span class="shortcut">${shortcuts.youtube}</span>
+			</li>
+			<li>
+				<span class="label">Twitter/X focus</span>
+				<span class="shortcut">${shortcuts.twitter}</span>
+			</li>
+		`
+	}
+
+	html += '</ul>'
+	container.innerHTML = html
+}
+
 // Initialize shortcuts section on page load
 async function initializeShortcutsSection() {
 	const browser = await detectBrowser()
 	renderShortcutsSection(browser)
+	renderDefaultShortcutsSection(browser)
 }

@@ -29,8 +29,7 @@
 		"https://www.x.com/*"
 	],
 	"background": {
-		"scripts": ["background.js"],
-		"type": "module"
+		"scripts": ["background.js"]
 	},
 	"action": {
 		"default_icon": "icon128.png",
@@ -39,15 +38,15 @@
 	"commands": {
 		"toggle-youtube-style": {
 			"suggested_key": {
-				"default": "Ctrl+Shift+Y",
-				"mac": "Command+Shift+Y"
+				"default": "Alt+Shift+Y",
+				"mac": "Alt+Shift+Y"
 			},
 			"description": "Toggle YouTube styling ON/OFF"
 		},
 		"toggle-twitter-style": {
 			"suggested_key": {
-				"default": "Ctrl+Shift+X",
-				"mac": "Command+Shift+X"
+				"default": "Alt+Shift+X",
+				"mac": "Alt+Shift+X"
 			},
 			"description": "Toggle Twitter styling ON/OFF"
 		}

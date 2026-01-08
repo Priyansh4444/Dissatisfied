@@ -39,6 +39,18 @@ async function buildExtension(target: BuildTarget = 'chrome') {
 		banner: `/* ${manifest.name}\n * Copyright (c) ${new Date().getFullYear()} ${manifest.author}\n */\n\n${chromePolyfill}`,
 	})
 
+	// Rename background script to ensure consistent naming across all builds
+	// Rename background script to ensure consistent naming across all builds
+	// Only needed for Safari which uses a different source file
+	if (target === 'safari') {
+		const builtBackgroundFile = join(outdir, 'background.safari.js')
+		const targetBackgroundFile = join(outdir, 'background.js')
+		if (await Bun.file(builtBackgroundFile).exists()) {
+			await Bun.write(targetBackgroundFile, Bun.file(builtBackgroundFile))
+			await $`rm ${builtBackgroundFile}`.nothrow().quiet()
+		}
+	}
+
 	// Build content scripts
 	await build({
 		entrypoints: [
@@ -69,6 +81,13 @@ async function buildExtension(target: BuildTarget = 'chrome') {
 	// copy UI files preserving directory structure
 	await $`mkdir -p ${outdir}/ui/options`
 	await $`cp -r src/ui/options/* ${outdir}/ui/options`.nothrow().quiet()
+
+	// Prepend polyfill to options.js for cross-browser compatibility
+	const optionsJsPath = join(outdir, 'ui', 'options', 'options.js')
+	if (await Bun.file(optionsJsPath).exists()) {
+		const optionsJsContent = await Bun.file(optionsJsPath).text()
+		await Bun.write(optionsJsPath, `${chromePolyfill}\n\n${optionsJsContent}`)
+	}
 
 	// copy global CSS if it exists
 	await $`cp src/ui/global.css ${outdir}/ui/`.nothrow().quiet()
