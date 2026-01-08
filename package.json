@@ -19,7 +19,7 @@
 	"devDependencies": {
 		"@types/bun": "^1.3.5",
 		"@types/chrome": "^0.1.32",
-		"@types/firefox-webext-browser": "^120.0.4",
+		"@types/firefox-webext-browser": "^143.0.0",
 		"prettier": "^3.7.4",
 		"webextension-polyfill": "^0.12.0"
 	},
