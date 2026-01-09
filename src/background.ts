@@ -1,30 +1,294 @@
+// Storage keys - must match options.js
+const STORAGE_KEYS = {
+	YOUTUBE_PERSISTENCE_MODE: 'youtube_persistence_mode',
+	TWITTER_PERSISTENCE_MODE: 'twitter_persistence_mode',
+	YOUTUBE_STATE: 'youtube_state',
+	TWITTER_STATE: 'twitter_state',
+	YOUTUBE_SESSIONS: 'youtube_sessions',
+	TWITTER_WIDTH: 'twitter_width',
+}
+
+// Default values
+const DEFAULTS = {
+	YOUTUBE_PERSISTENCE_MODE: 'tab',
+	TWITTER_PERSISTENCE_MODE: 'tab',
+	TWITTER_WIDTH: 80,
+}
+
+// Per-tab state tracking (for per-tab mode)
+interface TabState {
+	youtube: boolean
+	twitter: boolean
+}
+
+const tabStates = new Map<number, TabState>()
+
+// Theater mode sessions (track which tabs we enabled theater mode on)
+const theaterSessions = new Map<number, boolean>()
+
+// Initialize extension on install
 chrome.runtime.onInstalled.addListener(async ({ reason }) => {
-	if (reason !== 'install') {
-		return
+	if (reason === 'install') {
+		// Set default values
+		await chrome.storage.local.set({
+			[STORAGE_KEYS.YOUTUBE_PERSISTENCE_MODE]:
+				DEFAULTS.YOUTUBE_PERSISTENCE_MODE,
+			[STORAGE_KEYS.TWITTER_PERSISTENCE_MODE]:
+				DEFAULTS.TWITTER_PERSISTENCE_MODE,
+			[STORAGE_KEYS.TWITTER_WIDTH]: DEFAULTS.TWITTER_WIDTH,
+			[STORAGE_KEYS.YOUTUBE_STATE]: { enabled: false },
+			[STORAGE_KEYS.TWITTER_STATE]: { enabled: false },
+		})
+
+		await chrome.runtime.openOptionsPage()
 	}
 
-	await chrome.runtime.openOptionsPage()
+	// Always set initial badge
 	await chrome.action.setBadgeText({ text: 'OFF' })
 })
 
+// Open options page on icon click
 chrome.action.onClicked.addListener(async () => {
 	await chrome.runtime.openOptionsPage()
 })
 
+// Load theater sessions on startup
+chrome.runtime.onStartup.addListener(async () => {
+	const stored = await getStoredState(STORAGE_KEYS.YOUTUBE_SESSIONS)
+	if (stored) {
+		Object.entries(stored).forEach(([tabId, value]) => {
+			theaterSessions.set(Number(tabId), value as boolean)
+		})
+	}
+})
+
+// Helper functions
 const isYouTubeUrl = (url: string) => {
-	const u = new URL(url)
-	const host = u.hostname
-	return (
-		host === 'www.youtube.com' ||
-		host === 'm.youtube.com' ||
-		host === 'youtu.be'
-	)
+	try {
+		const u = new URL(url)
+		const host = u.hostname
+		return (
+			host === 'www.youtube.com' ||
+			host === 'm.youtube.com' ||
+			host === 'youtu.be'
+		)
+	} catch {
+		return false
+	}
 }
 
-// --- Fix for theater mode state tracking ---
-// Map to track if WE enabled theater mode for each tab
-const sessions = new Map<number, boolean>()
+const isTwitterUrl = (url: string) => {
+	try {
+		const u = new URL(url)
+		const host = u.hostname
+		return (
+			host === 'twitter.com' ||
+			host === 'www.twitter.com' ||
+			host === 'x.com' ||
+			host === 'www.x.com'
+		)
+	} catch {
+		return false
+	}
+}
 
+async function getStoredState(key: string): Promise<any> {
+	const result = await chrome.storage.local.get(key)
+	return result[key]
+}
+
+async function setStoredState(key: string, value: any): Promise<void> {
+	await chrome.storage.local.set({ [key]: value })
+}
+
+async function getYoutubePersistenceMode(): Promise<'tab' | 'global'> {
+	const mode = await getStoredState(STORAGE_KEYS.YOUTUBE_PERSISTENCE_MODE)
+	return mode || DEFAULTS.YOUTUBE_PERSISTENCE_MODE
+}
+
+async function getTwitterPersistenceMode(): Promise<'tab' | 'global'> {
+	const mode = await getStoredState(STORAGE_KEYS.TWITTER_PERSISTENCE_MODE)
+	return mode || DEFAULTS.TWITTER_PERSISTENCE_MODE
+}
+
+async function saveTheaterSessions() {
+	const obj: Record<number, boolean> = {}
+	theaterSessions.forEach((value, key) => {
+		obj[key] = value
+	})
+	await setStoredState(STORAGE_KEYS.YOUTUBE_SESSIONS, obj)
+}
+
+// Get or initialize tab state
+function getTabState(tabId: number): TabState {
+	if (!tabStates.has(tabId)) {
+		tabStates.set(tabId, { youtube: false, twitter: false })
+	}
+	return tabStates.get(tabId)!
+}
+
+// Apply YouTube styles to a tab
+async function applyYouTubeStyles(tabId: number): Promise<void> {
+	try {
+		await chrome.scripting.insertCSS({
+			target: { tabId },
+			files: ['styles/youtube.css'],
+		})
+
+		// Enable theater mode if not already enabled
+		const results = await chrome.scripting.executeScript({
+			target: { tabId },
+			func: () => {
+				const playerPage = document.querySelector(
+					'ytd-watch-flexy, ytd-watch-grid',
+				)
+				if (playerPage && !playerPage.hasAttribute('theater')) {
+					const btn = document.querySelector(
+						'.ytp-size-button',
+					) as HTMLButtonElement
+					if (btn) {
+						btn.click()
+						return true
+					}
+				}
+				return false
+			},
+		})
+
+		if (results[0]?.result) {
+			theaterSessions.set(tabId, true)
+			await saveTheaterSessions()
+		}
+
+		await chrome.action.setBadgeText({ tabId, text: 'ON' })
+	} catch (error) {
+		console.error('Error applying YouTube styles:', error)
+	}
+}
+
+// Remove YouTube styles from a tab
+async function removeYouTubeStyles(tabId: number): Promise<void> {
+	try {
+		await chrome.scripting.removeCSS({
+			target: { tabId },
+			files: ['styles/youtube.css'],
+		})
+
+		// Revert theater mode only if we enabled it
+		const didWeToggle = theaterSessions.get(tabId)
+		if (didWeToggle) {
+			await chrome.scripting.executeScript({
+				target: { tabId },
+				func: () => {
+					const playerPage = document.querySelector(
+						'ytd-watch-flexy, ytd-watch-grid',
+					)
+					if (playerPage && playerPage.hasAttribute('theater')) {
+						const btn = document.querySelector(
+							'.ytp-size-button',
+						) as HTMLButtonElement
+						if (btn) btn.click()
+					}
+				},
+			})
+			theaterSessions.delete(tabId)
+			await saveTheaterSessions()
+		}
+
+		await chrome.action.setBadgeText({ tabId, text: 'OFF' })
+	} catch (error) {
+		console.error('Error removing YouTube styles:', error)
+	}
+}
+
+// Apply Twitter styles to a tab
+async function applyTwitterStyles(tabId: number): Promise<void> {
+	try {
+		// First, inject CSS variable for Twitter width
+		const twitterWidth = await getStoredState(STORAGE_KEYS.TWITTER_WIDTH)
+		const width = twitterWidth || DEFAULTS.TWITTER_WIDTH
+
+		await chrome.scripting.executeScript({
+			target: { tabId },
+			func: (widthValue: number) => {
+				document.documentElement.style.setProperty(
+					'--twitter-width',
+					`${widthValue}%`,
+				)
+			},
+			args: [width],
+		})
+
+		// Then inject the CSS file
+		await chrome.scripting.insertCSS({
+			target: { tabId },
+			files: ['styles/twitter.css'],
+		})
+		await chrome.action.setBadgeText({ tabId, text: 'ON' })
+	} catch (error) {
+		console.error('Error applying Twitter styles:', error)
+	}
+}
+
+// Remove Twitter styles from a tab
+async function removeTwitterStyles(tabId: number): Promise<void> {
+	try {
+		await chrome.scripting.removeCSS({
+			target: { tabId },
+			files: ['styles/twitter.css'],
+		})
+		await chrome.action.setBadgeText({ tabId, text: 'OFF' })
+	} catch (error) {
+		console.error('Error removing Twitter styles:', error)
+	}
+}
+
+// Handle tab updates - apply state based on persistence mode
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+	if (changeInfo.status !== 'complete' || !tab.url) {
+		return
+	}
+
+	// Check YouTube
+	if (isYouTubeUrl(tab.url)) {
+		const mode = await getYoutubePersistenceMode()
+		if (mode === 'global') {
+			const state = await getStoredState(STORAGE_KEYS.YOUTUBE_STATE)
+			if (state?.enabled) {
+				await applyYouTubeStyles(tabId)
+			} else {
+				await chrome.action.setBadgeText({ tabId, text: 'OFF' })
+			}
+		} else {
+			// Per-tab mode: check tab-specific state
+			const tabState = getTabState(tabId)
+			if (tabState.youtube) {
+				await applyYouTubeStyles(tabId)
+			}
+		}
+	}
+
+	// Check Twitter
+	if (isTwitterUrl(tab.url)) {
+		const mode = await getTwitterPersistenceMode()
+		if (mode === 'global') {
+			const state = await getStoredState(STORAGE_KEYS.TWITTER_STATE)
+			if (state?.enabled) {
+				await applyTwitterStyles(tabId)
+			} else {
+				await chrome.action.setBadgeText({ tabId, text: 'OFF' })
+			}
+		} else {
+			// Per-tab mode: check tab-specific state
+			const tabState = getTabState(tabId)
+			if (tabState.twitter) {
+				await applyTwitterStyles(tabId)
+			}
+		}
+	}
+})
+
+// YouTube toggle command
 chrome.commands.onCommand.addListener(async (command) => {
 	if (command !== 'toggle-youtube-style') {
 		return
@@ -40,101 +304,142 @@ chrome.commands.onCommand.addListener(async (command) => {
 		return
 	}
 
-	const prevState = await chrome.action.getBadgeText({ tabId: tab.id })
-	const nextState = prevState === 'ON' ? 'OFF' : 'ON'
+	const mode = await getYoutubePersistenceMode()
 
-	if (nextState === 'ON') {
-		// Turn ON: Insert CSS and enable theater mode if not already enabled
-		await chrome.scripting.insertCSS({
-			target: { tabId: tab.id },
-			files: ['styles/youtube.css'],
-		})
+	if (mode === 'global') {
+		// Global mode: toggle for all tabs
+		const currentState = await getStoredState(STORAGE_KEYS.YOUTUBE_STATE)
+		const isEnabled = currentState?.enabled || false
+		const nextState = !isEnabled
 
-		// Execute script and return whether we actually performed a click
-		const results = await chrome.scripting.executeScript({
-			target: { tabId: tab.id },
-			func: () => {
-				const playerPage = document.querySelector(
-					'ytd-watch-flexy, ytd-watch-grid',
-				)
-				if (playerPage && !playerPage.hasAttribute('theater')) {
-					;(
-						document.querySelector('.ytp-size-button') as HTMLButtonElement
-					)?.click()
-					return true // We toggled it ON
+		await setStoredState(STORAGE_KEYS.YOUTUBE_STATE, { enabled: nextState })
+
+		// Apply/remove to all YouTube tabs
+		const allTabs = await chrome.tabs.query({})
+		for (const t of allTabs) {
+			if (typeof t.id === 'number' && t.url && isYouTubeUrl(t.url)) {
+				if (nextState) {
+					await applyYouTubeStyles(t.id)
+				} else {
+					await removeYouTubeStyles(t.id)
 				}
-				return false // It was already theater
-			},
-		})
-
-		// Save if we were the ones who turned theater on
-		sessions.set(tab.id, results[0]!.result!)
-	} else {
-		// Turn OFF: Remove CSS and only revert theater mode if WE enabled it
-		await chrome.scripting.removeCSS({
-			target: { tabId: tab.id },
-			files: ['styles/youtube.css'],
-		})
-
-		const didWeToggle = sessions.get(tab.id)
-		if (didWeToggle) {
-			await chrome.scripting.executeScript({
-				target: { tabId: tab.id },
-				func: () => {
-					const playerPage = document.querySelector(
-						'ytd-watch-flexy, ytd-watch-grid',
-					)
-					if (playerPage && playerPage.hasAttribute('theater')) {
-						;(
-							document.querySelector('.ytp-size-button') as HTMLButtonElement
-						)?.click()
-					}
-				},
-			})
+			}
 		}
-		sessions.delete(tab.id)
-	}
+	} else {
+		// Per-tab mode: toggle only current tab
+		const tabState = getTabState(tab.id)
+		const nextState = !tabState.youtube
 
-	await chrome.action.setBadgeText({ tabId: tab.id, text: nextState })
+		tabState.youtube = nextState
+
+		if (nextState) {
+			await applyYouTubeStyles(tab.id)
+		} else {
+			await removeYouTubeStyles(tab.id)
+		}
+	}
 })
 
-// Minimal Twitter toggle: inject/remove styles/twitter.css, no extra logic
+// Twitter toggle command
 chrome.commands.onCommand.addListener(async (command) => {
 	if (command !== 'toggle-twitter-style') {
 		return
 	}
 
 	const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
+
 	if (!tab || typeof tab.id !== 'number' || typeof tab.url !== 'string') {
 		return
 	}
 
-	const u = new URL(tab.url)
-	const host = u.hostname
-	const isTwitter =
-		host === 'twitter.com' ||
-		host === 'www.twitter.com' ||
-		host === 'x.com' ||
-		host === 'www.x.com'
-
-	if (!isTwitter) {
+	if (!isTwitterUrl(tab.url)) {
 		return
 	}
 
-	const prevState = await chrome.action.getBadgeText({ tabId: tab.id })
-	const nextState = prevState === 'ON' ? 'OFF' : 'ON'
+	const mode = await getTwitterPersistenceMode()
 
-	if (nextState === 'ON') {
-		await chrome.scripting.insertCSS({
-			target: { tabId: tab.id },
-			files: ['styles/twitter.css'],
-		})
+	if (mode === 'global') {
+		// Global mode: toggle for all tabs
+		const currentState = await getStoredState(STORAGE_KEYS.TWITTER_STATE)
+		const isEnabled = currentState?.enabled || false
+		const nextState = !isEnabled
+
+		await setStoredState(STORAGE_KEYS.TWITTER_STATE, { enabled: nextState })
+
+		// Apply/remove to all Twitter tabs
+		const allTabs = await chrome.tabs.query({})
+		for (const t of allTabs) {
+			if (typeof t.id === 'number' && t.url && isTwitterUrl(t.url)) {
+				if (nextState) {
+					await applyTwitterStyles(t.id)
+				} else {
+					await removeTwitterStyles(t.id)
+				}
+			}
+		}
 	} else {
-		await chrome.scripting.removeCSS({
-			target: { tabId: tab.id },
-			files: ['styles/twitter.css'],
-		})
-	}
+		// Per-tab mode: toggle only current tab
+		const tabState = getTabState(tab.id)
+		const nextState = !tabState.twitter
 
-	await chrome.action.setBadgeText({ tabId: tab.id, text: nextState })
+		tabState.twitter = nextState
+
+		if (nextState) {
+			await applyTwitterStyles(tab.id)
+		} else {
+			await removeTwitterStyles(tab.id)
+		}
+	}
+})
+
+// Clean up when tabs are closed
+chrome.tabs.onRemoved.addListener(async (tabId) => {
+	// Clean up per-tab state
+	tabStates.delete(tabId)
+
+	// Clean up theater sessions
+	if (theaterSessions.has(tabId)) {
+		theaterSessions.delete(tabId)
+		await saveTheaterSessions()
+	}
+})
+
+// Update badge when tab becomes active
+chrome.tabs.onActivated.addListener(async ({ tabId }) => {
+	try {
+		const tab = await chrome.tabs.get(tabId)
+		if (!tab.url) {
+			return
+		}
+
+		// Check YouTube
+		if (isYouTubeUrl(tab.url)) {
+			const mode = await getYoutubePersistenceMode()
+			if (mode === 'global') {
+				const state = await getStoredState(STORAGE_KEYS.YOUTUBE_STATE)
+				const badgeText = state?.enabled ? 'ON' : 'OFF'
+				await chrome.action.setBadgeText({ tabId, text: badgeText })
+			} else {
+				const tabState = getTabState(tabId)
+				const badgeText = tabState.youtube ? 'ON' : 'OFF'
+				await chrome.action.setBadgeText({ tabId, text: badgeText })
+			}
+		}
+
+		// Check Twitter
+		if (isTwitterUrl(tab.url)) {
+			const mode = await getTwitterPersistenceMode()
+			if (mode === 'global') {
+				const state = await getStoredState(STORAGE_KEYS.TWITTER_STATE)
+				const badgeText = state?.enabled ? 'ON' : 'OFF'
+				await chrome.action.setBadgeText({ tabId, text: badgeText })
+			} else {
+				const tabState = getTabState(tabId)
+				const badgeText = tabState.twitter ? 'ON' : 'OFF'
+				await chrome.action.setBadgeText({ tabId, text: badgeText })
+			}
+		}
+	} catch (error) {
+		// Tab might have been closed
+	}
 })

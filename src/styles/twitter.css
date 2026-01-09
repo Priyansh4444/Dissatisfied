@@ -22,8 +22,9 @@ div:has([data-testid='primaryColumn']) {
 
 /*div data-testid="primaryColumn"*/
 [data-testid='primaryColumn'] {
-	width: 80% !important;
-	max-width: 80% !important;
+	/* width is now dynamically injected based on user settings */
+	width: var(--twitter-width, 80%) !important;
+	max-width: var(--twitter-width, 80%) !important;
 	position: absolute !important;
 	div {
 		max-width: 100% !important;

@@ -10,40 +10,173 @@
 	<body>
 		<main class="vercel-frame">
 			<header class="hero stack">
-				<span class="eyebrow">Keybinds (defaults)</span>
+				<span class="eyebrow">Settings & Keybinds</span>
 				<h1>Dissatisfied</h1>
 				<p class="muted">
-					These are the default shortcuts as defined in
-					<code>manifest.json</code>.
+					Configure how the extension behaves and customize your shortcuts.
 				</p>
 			</header>
+
+			<div class="divider" role="separator" aria-hidden="true"></div>
+
+			<section class="stack" aria-labelledby="youtube-persistence-title">
+				<div class="section-title" id="youtube-persistence-title">
+					<span>YouTube Persistence Mode</span>
+					<span class="pill">Configuration</span>
+				</div>
+
+				<p class="muted">Choose how YouTube focus mode behaves:</p>
+
+				<div class="radio-group">
+					<label class="radio-option">
+						<input
+							type="radio"
+							name="youtubePersistenceMode"
+							value="tab"
+							id="youtube-mode-tab"
+							checked
+						/>
+						<div class="radio-content">
+							<strong>Per-Tab Mode (Default)</strong>
+							<span class="muted"
+								>Each tab has its own state. Focus mode resets when you navigate
+								away or close the tab.</span
+							>
+						</div>
+					</label>
+
+					<label class="radio-option">
+						<input
+							type="radio"
+							name="youtubePersistenceMode"
+							value="global"
+							id="youtube-mode-global"
+						/>
+						<div class="radio-content">
+							<strong>Global Mode</strong>
+							<span class="muted"
+								>Focus mode persists across all YouTube tabs and sessions. Once
+								enabled, it stays enabled everywhere.</span
+							>
+						</div>
+					</label>
+				</div>
+
+				<div class="status-container">
+					<span class="status-message" id="save-status"></span>
+				</div>
+
+				<small class="muted note">
+					<strong>Note:</strong> Settings are saved automatically. In Global
+					Mode, your preference persists across all tabs and sessions. In
+					Per-Tab Mode (recommended), each tab is independent.
+				</small>
+			</section>
+
+			<div class="divider" role="separator" aria-hidden="true"></div>
+
+			<section class="stack" aria-labelledby="twitter-persistence-title">
+				<div class="section-title" id="twitter-persistence-title">
+					<span>Twitter/X Persistence Mode</span>
+					<span class="pill">Configuration</span>
+				</div>
+
+				<p class="muted">Choose how Twitter/X focus mode behaves:</p>
+
+				<div class="radio-group">
+					<label class="radio-option">
+						<input
+							type="radio"
+							name="twitterPersistenceMode"
+							value="tab"
+							id="twitter-mode-tab"
+							checked
+						/>
+						<div class="radio-content">
+							<strong>Per-Tab Mode (Default)</strong>
+							<span class="muted"
+								>Each tab has its own state. Focus mode resets when you navigate
+								away or close the tab.</span
+							>
+						</div>
+					</label>
+
+					<label class="radio-option">
+						<input
+							type="radio"
+							name="twitterPersistenceMode"
+							value="global"
+							id="twitter-mode-global"
+						/>
+						<div class="radio-content">
+							<strong>Global Mode</strong>
+							<span class="muted"
+								>Focus mode persists across all Twitter/X tabs and sessions.
+								Once enabled, it stays enabled everywhere.</span
+							>
+						</div>
+					</label>
+				</div>
+
+				<small class="muted note">
+					<strong>Note:</strong> Settings are saved automatically. Independent
+					from YouTube settings - control each platform separately.
+				</small>
+			</section>
+
+			<div class="divider" role="separator" aria-hidden="true"></div>
+
+			<section class="stack" aria-labelledby="twitter-width-title">
+				<div class="section-title" id="twitter-width-title">
+					<span>Twitter/X Width</span>
+					<span class="pill">Customization</span>
+				</div>
+
+				<p class="muted">
+					Adjust how wide the Twitter/X timeline appears in focus mode:
+				</p>
+
+				<div class="slider-container">
+					<label for="twitter-width-slider" class="slider-label">
+						<span>Timeline Width:</span>
+						<span class="slider-value" id="twitter-width-value">80%</span>
+					</label>
+					<input
+						type="range"
+						id="twitter-width-slider"
+						min="30"
+						max="100"
+						step="5"
+						value="80"
+						class="slider"
+					/>
+					<div class="slider-marks">
+						<span>30%</span>
+						<span>66%</span>
+						<span>100%</span>
+					</div>
+				</div>
+
+				<small class="muted note">
+					Changes take effect the next time you toggle Twitter/X focus mode.
+				</small>
+			</section>
 
 			<div class="divider" role="separator" aria-hidden="true"></div>
 
 			<section class="stack" aria-labelledby="default-shortcuts-title">
 				<div class="section-title" id="default-shortcuts-title">
 					<span>Default shortcuts</span>
-					<span class="pill">Static</span>
+					<span class="pill">Default</span>
 				</div>
 
-				<ul class="list" role="list">
-					<li>
-						<span class="label">YouTube focus</span>
-						<span class="shortcut"
-							>Ctrl + Shift + Y (mac: Command + Shift + Y)</span
-						>
-					</li>
-					<li>
-						<span class="label">Twitter/X focus</span>
-						<span class="shortcut"
-							>Ctrl + Shift + X (mac: Command + Shift + X)</span
-						>
-					</li>
-				</ul>
+				<div id="default-shortcuts-container">
+					<p class="muted">Loading default shortcuts...</p>
+				</div>
 
 				<small class="muted note">
 					This page does not auto-update when you change shortcuts in your
-					browser’s shortcut editor. If you want to change the defaults shipped
+					browser's shortcut editor. If you want to change the defaults shipped
 					with the extension, edit the
 					<code>commands</code> section in <code>manifest.json</code>.
 				</small>
@@ -57,20 +190,18 @@
 					<span class="pill">System</span>
 				</div>
 
-				<p class="muted">Open the built-in shortcut settings page:</p>
-
-				<div class="actions">
-					<a class="btn" href="chrome://extensions/shortcuts"
-						>Open shortcut editor</a
-					>
+				<div id="shortcuts-config-container">
+					<p class="muted">Loading shortcuts configuration...</p>
 				</div>
 
 				<small class="muted note">
-					If the link doesn’t open (some browsers block navigating to internal
-					pages), open the shortcut editor manually from your browser’s
-					extensions page.
+					Shortcuts are managed by your browser's internal settings. Due to
+					security restrictions, extensions cannot directly open these pages.
+					Copy the URL above to access keyboard shortcut configuration.
 				</small>
 			</section>
 		</main>
+
+		<script src="options.js"></script>
 	</body>
 </html>

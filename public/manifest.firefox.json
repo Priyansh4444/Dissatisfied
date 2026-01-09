@@ -14,10 +14,13 @@
 	"browser_specific_settings": {
 		"gecko": {
 			"id": "dissatisfied@pronsh.dev",
-			"strict_min_version": "109.0"
+			"strict_min_version": "112.0",
+			"data_collection_permissions": {
+				"required": ["none"]
+			}
 		}
 	},
-	"permissions": ["activeTab", "scripting"],
+	"permissions": ["scripting", "storage", "tabs"],
 	"host_permissions": [
 		"https://www.youtube.com/*",
 		"https://twitter.com/*",
@@ -26,8 +29,7 @@
 		"https://www.x.com/*"
 	],
 	"background": {
-		"scripts": ["background.js"],
-		"type": "module"
+		"scripts": ["background.js"]
 	},
 	"action": {
 		"default_icon": "icon128.png",
@@ -36,15 +38,15 @@
 	"commands": {
 		"toggle-youtube-style": {
 			"suggested_key": {
-				"default": "Ctrl+Shift+Y",
-				"mac": "Command+Shift+Y"
+				"default": "Alt+Shift+Y",
+				"mac": "Alt+Shift+Y"
 			},
 			"description": "Toggle YouTube styling ON/OFF"
 		},
 		"toggle-twitter-style": {
 			"suggested_key": {
-				"default": "Ctrl+Shift+X",
-				"mac": "Command+Shift+X"
+				"default": "Alt+Shift+X",
+				"mac": "Alt+Shift+X"
 			},
 			"description": "Toggle Twitter styling ON/OFF"
 		}
@@ -52,5 +54,40 @@
 	"options_ui": {
 		"page": "ui/options/index.html",
 		"open_in_tab": true
-	}
+	},
+	"content_scripts": [
+		{
+			"matches": [
+				"*://www.youtube.com/*",
+				"*://m.youtube.com/*",
+				"*://youtu.be/*"
+			],
+			"js": ["content-youtube.js"],
+			"run_at": "document_end"
+		},
+		{
+			"matches": [
+				"*://twitter.com/*",
+				"*://www.twitter.com/*",
+				"*://x.com/*",
+				"*://www.x.com/*"
+			],
+			"js": ["content-twitter.js"],
+			"run_at": "document_end"
+		}
+	],
+	"web_accessible_resources": [
+		{
+			"resources": ["styles/youtube.css", "styles/twitter.css"],
+			"matches": [
+				"*://www.youtube.com/*",
+				"*://m.youtube.com/*",
+				"*://youtu.be/*",
+				"*://twitter.com/*",
+				"*://www.twitter.com/*",
+				"*://x.com/*",
+				"*://www.x.com/*"
+			]
+		}
+	]
 }

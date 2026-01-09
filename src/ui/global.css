@@ -309,16 +309,23 @@ button,
 .btn {
 	appearance: none;
 	border: 1px solid var(--line);
-	background: rgba(0, 0, 0, 0.35);
+	background: rgba(0, 0, 0, 0.4);
 
-	color: rgba(255, 255, 255, 0.9);
+	color: rgba(255, 255, 255, 0.92);
 	font-weight: 800;
-	letter-spacing: 0.04em;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	font-size: 11px;
 
-	padding: 10px 12px;
+	padding: 10px 16px;
 	cursor: pointer;
 
 	max-width: 100%;
+	text-decoration: none;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	transition: all 0.15s ease;
 }
 .eyebrow {
 	padding-bottom: 8px;
@@ -326,15 +333,18 @@ button,
 
 button:hover,
 .btn:hover {
-	border-color: rgba(0, 163, 255, 0.7);
-	box-shadow: 0 0 0 1px rgba(0, 163, 255, 0.25);
+	border-color: rgba(0, 163, 255, 0.8);
+	background: rgba(0, 163, 255, 0.08);
+	box-shadow: 0 0 0 1px rgba(0, 163, 255, 0.3);
+	transform: translateY(-1px);
 }
 
 button:active,
 .btn:active {
-	border-color: rgba(255, 45, 45, 0.75);
-	box-shadow: 0 0 0 1px rgba(255, 45, 45, 0.25);
-	transform: translateY(1px);
+	border-color: rgba(0, 163, 255, 0.9);
+	background: rgba(0, 163, 255, 0.12);
+	box-shadow: 0 0 0 1px rgba(0, 163, 255, 0.4);
+	transform: translateY(0);
 }
 
 .note {
