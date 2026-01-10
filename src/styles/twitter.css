@@ -1,5 +1,6 @@
 [data-testid='sidebarColumn'],
-[data-testid='chat-drawer-root'] {
+[data-testid='chat-drawer-root'],
+[data-testid='GrokDrawer'] {
 	display: none !important;
 }
 
