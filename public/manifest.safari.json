@@ -3,7 +3,7 @@
 	"manifest_version": 2,
 	"name": "Dissatisfied",
 	"description": "Get rid of parts of UI, when focussing on content.",
-	"version": "0.1.2",
+	"version": "0.2.1",
 	"author": "Pronsh",
 	"icons": {
 		"16": "icon16.png",
