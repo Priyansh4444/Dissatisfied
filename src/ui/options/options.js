@@ -295,7 +295,7 @@ function getShortcutsConfig(browser) {
 			url: 'about:addons',
 			title: 'Firefox',
 			disclaimer:
-				'Firefox manages shortcuts through the Add-ons Manager. Navigate to the extension settings after opening.',
+				'Firefox manages shortcuts through the Add-ons Manager. Navigate to the extension settings after opening. In the Settings Icon, click `Manage Extension Shortcuts` to change the shortcut!',
 		},
 		safari: {
 			url: null,
