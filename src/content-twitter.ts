@@ -229,11 +229,38 @@ const toggle = async (): Promise<Result<void>> => {
 // Toggle Button Creation
 // ============================================================================
 
-// Simple focus/clean icon - a minimal square with rounded corners
-const ICON_SVG = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-	<rect x="3" y="3" width="18" height="18" rx="3"/>
-	<line x1="9" y1="3" x2="9" y2="21"/>
-</svg>`
+const SVG_NS = 'http://www.w3.org/2000/svg'
+
+// Create SVG icon using safe DOM APIs (no innerHTML)
+const createIcon = (): SVGSVGElement => {
+	const svg = document.createElementNS(SVG_NS, 'svg')
+	svg.setAttribute('viewBox', '0 0 24 24')
+	svg.setAttribute('width', '18')
+	svg.setAttribute('height', '18')
+	svg.setAttribute('fill', 'none')
+	svg.setAttribute('stroke', 'currentColor')
+	svg.setAttribute('stroke-width', '2')
+	svg.setAttribute('stroke-linecap', 'round')
+	svg.setAttribute('stroke-linejoin', 'round')
+
+	const rect = document.createElementNS(SVG_NS, 'rect')
+	rect.setAttribute('x', '3')
+	rect.setAttribute('y', '3')
+	rect.setAttribute('width', '18')
+	rect.setAttribute('height', '18')
+	rect.setAttribute('rx', '3')
+
+	const line = document.createElementNS(SVG_NS, 'line')
+	line.setAttribute('x1', '9')
+	line.setAttribute('y1', '3')
+	line.setAttribute('x2', '9')
+	line.setAttribute('y2', '21')
+
+	svg.appendChild(rect)
+	svg.appendChild(line)
+
+	return svg
+}
 
 const createToggleButton = (): HTMLButtonElement => {
 	const active = isActive()
@@ -243,7 +270,11 @@ const createToggleButton = (): HTMLButtonElement => {
 	button.type = 'button'
 	button.setAttribute('aria-pressed', String(active))
 	button.setAttribute('aria-label', 'Toggle clean view')
-	button.innerHTML = ICON_SVG
+
+	const icon = createIcon()
+	icon.style.opacity = active ? '1' : '0.6'
+	icon.style.transition = 'opacity 0.2s'
+	button.appendChild(icon)
 
 	// Minimal styling - matches Twitter's icon buttons
 	Object.assign(button.style, {
@@ -261,13 +292,6 @@ const createToggleButton = (): HTMLButtonElement => {
 		cursor: 'pointer',
 		transition: 'background-color 0.2s, color 0.2s',
 	} as CSSStyleDeclaration)
-
-	// Set initial icon state
-	const icon = button.querySelector('svg')
-	if (icon) {
-		;(icon as SVGElement).style.opacity = active ? '1' : '0.6'
-		;(icon as SVGElement).style.transition = 'opacity 0.2s'
-	}
 
 	// Hover effect - subtle background like Twitter's buttons
 	button.addEventListener('mouseenter', () => {
