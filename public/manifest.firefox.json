@@ -3,7 +3,7 @@
 	"manifest_version": 3,
 	"name": "Dissatisfied",
 	"description": "Get rid of parts of UI, when focussing on content.",
-	"version": "0.3.1",
+	"version": "0.3.3",
 	"author": "Pronsh",
 	"icons": {
 		"16": "icon16.png",
@@ -17,13 +17,15 @@
 			"strict_min_version": "112.0"
 		}
 	},
-	"permissions": ["scripting", "storage", "tabs"],
+	"permissions": ["scripting", "storage", "tabs", "activeTab"],
 	"host_permissions": [
-		"https://www.youtube.com/*",
-		"https://twitter.com/*",
-		"https://www.twitter.com/*",
-		"https://x.com/*",
-		"https://www.x.com/*"
+		"*://www.youtube.com/*",
+		"*://m.youtube.com/*",
+		"*://youtu.be/*",
+		"*://twitter.com/*",
+		"*://www.twitter.com/*",
+		"*://x.com/*",
+		"*://www.x.com/*"
 	],
 	"background": {
 		"scripts": ["background.js"]
@@ -70,7 +72,7 @@
 				"*://www.x.com/*"
 			],
 			"js": ["content-twitter.js"],
-			"run_at": "document_end"
+			"run_at": "document_start"
 		}
 	],
 	"web_accessible_resources": [

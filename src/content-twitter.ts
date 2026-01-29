@@ -1,6 +1,33 @@
 // Rust-style TypeScript for Twitter content script
 
 // ============================================================================
+// CRITICAL: Register message listener FIRST before any other code
+// This ensures the content script can receive messages from background
+// even if the DOM isn't ready yet (when using run_at: document_start)
+// ============================================================================
+
+chrome.runtime.onMessage.addListener(
+	(
+		message: { action: string },
+		_sender: chrome.runtime.MessageSender,
+		sendResponse: (response: { success: boolean }) => void,
+	) => {
+		if (message.action === 'apply-twitter-styles') {
+			activate().then(() => sendResponse({ success: true }))
+			return true
+		}
+
+		if (message.action === 'remove-twitter-styles') {
+			deactivate()
+			sendResponse({ success: true })
+			return false
+		}
+
+		return false
+	},
+)
+
+// ============================================================================
 // Types
 // ============================================================================
 
@@ -74,11 +101,11 @@ const getStylesheet = (): HTMLLinkElement | null =>
 const getToggleButton = (): HTMLButtonElement | null =>
 	getElementById<HTMLButtonElement>(TOGGLE_BUTTON_ID)
 
-const getInjectionTarget = (): { element: HTMLElement; position: 'prepend' | 'append' } | null => {
+const getInjectionTarget = (): HTMLElement | null => {
 	// Option 1: Tweet detail page - find the row with Reply button
 	const replyButton = queryElement<HTMLElement>('[aria-label="Reply"]')
 	if (replyButton?.parentElement) {
-		return { element: replyButton.parentElement, position: 'prepend' }
+		return replyButton.parentElement
 	}
 
 	// Option 2: Home timeline - find the tab navigation row
@@ -89,9 +116,9 @@ const getInjectionTarget = (): { element: HTMLElement; position: 'prepend' | 'ap
 		// Find the nav container with flex layout
 		const nav = tabList.closest<HTMLElement>('nav')
 		if (nav) {
-			return { element: nav, position: 'append' }
+			return nav
 		}
-		return { element: tabList.parentElement, position: 'append' }
+		return tabList.parentElement
 	}
 
 	// Option 3: Generic - find the sticky header's inner flex row
@@ -104,7 +131,7 @@ const getInjectionTarget = (): { element: HTMLElement; position: 'prepend' | 'ap
 			'.css-175oi2r.r-1awozwy.r-18u37iz',
 		)
 		if (flexRow) {
-			return { element: flexRow, position: 'prepend' }
+			return flexRow
 		}
 	}
 
@@ -155,7 +182,9 @@ const injectStylesheet = (): Result<HTMLLinkElement> => {
 		link.id = STYLESHEET_ID
 		link.rel = 'stylesheet'
 		link.href = chrome.runtime.getURL('styles/twitter.css')
-		document.head.appendChild(link)
+		// Handle document_start when head might not exist yet
+		const target = document.head || document.documentElement
+		target.appendChild(link)
 		return ok(link)
 	} catch (e) {
 		return err(e instanceof Error ? e : new Error(String(e)))
@@ -324,12 +353,7 @@ const injectToggleButton = (): Result<HTMLButtonElement> => {
 	}
 
 	const button = createToggleButton()
-
-	if (target.position === 'prepend') {
-		target.element.insertBefore(button, target.element.firstChild)
-	} else {
-		target.element.appendChild(button)
-	}
+	target.appendChild(button)
 
 	return ok(button)
 }
@@ -402,28 +426,7 @@ chrome.storage.onChanged.addListener(
 	},
 )
 
-chrome.runtime.onMessage.addListener(
-	(
-		message: { action: string },
-		_sender: chrome.runtime.MessageSender,
-		sendResponse: (response: { success: boolean }) => void,
-	) => {
-		if (!isTwitterPage()) return false
-
-		if (message.action === 'apply-twitter-styles') {
-			activate().then(() => sendResponse({ success: true }))
-			return true
-		}
-
-		if (message.action === 'remove-twitter-styles') {
-			deactivate()
-			sendResponse({ success: true })
-			return false
-		}
-
-		return false
-	},
-)
+// Message listener is registered at the top of the file
 
 // ============================================================================
 // SPA Navigation Observer
