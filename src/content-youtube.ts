@@ -184,24 +184,29 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 	}
 })
 
-// Keyboard shortcut: press `~` to toggle on YouTube pages.
-document.addEventListener('keydown', (event) => {
-	if (!isYouTubePage()) {
-		return
-	}
+document.addEventListener(
+	'keydown',
+	(event) => {
+		if (!isYouTubePage()) {
+			return
+		}
 
-	if (isEditableTarget(event.target)) {
-		return
-	}
+		if (isEditableTarget(event.target)) {
+			return
+		}
 
-	const isBackquote = event.key === '`' || event.code === 'Backquote'
-	if (!isBackquote) {
-		return
-	}
+		const isBackquote =
+			(event.key === '`' || event.code === 'Backquote') && !event.shiftKey
+		if (!isBackquote) {
+			return
+		}
 
-	event.preventDefault()
-	toggleStyles()
-})
+		event.preventDefault()
+		event.stopPropagation()
+		toggleStyles()
+	},
+	true,
+)
 
 // Initialize on page load
 if (document.readyState === 'loading') {

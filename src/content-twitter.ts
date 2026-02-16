@@ -439,18 +439,22 @@ chrome.storage.onChanged.addListener(
 
 // Message listener is registered at the top of the file
 
-// Keyboard shortcut: press Ctrl+B to toggle on Twitter/X pages.
-document.addEventListener('keydown', (event) => {
-	if (!isTwitterPage()) return
-	if (isEditableTarget(event.target)) return
+document.addEventListener(
+	'keydown',
+	(event) => {
+		if (!isTwitterPage()) return
+		if (isEditableTarget(event.target)) return
 
-	const isControlB = event.ctrlKey && !event.altKey && !event.metaKey
-	if (!isControlB) return
-	if (event.key.toLowerCase() !== 'b') return
+		const isControlB = event.ctrlKey && !event.altKey && !event.metaKey
+		if (!isControlB) return
+		if (event.key.toLowerCase() !== 'b') return
 
-	event.preventDefault()
-	void toggle()
-})
+		event.preventDefault()
+		event.stopPropagation()
+		void toggle()
+	},
+	true,
+)
 
 // ============================================================================
 // SPA Navigation Observer
