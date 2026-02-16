@@ -1,5 +1,15 @@
 @import '../global.css';
 
+kbd {
+	display: inline-block;
+	padding: 2px 6px;
+	font-size: 0.9em;
+	font-family: inherit;
+	background: var(--line-soft, rgba(255, 255, 255, 0.08));
+	border: 1px solid var(--line, rgba(255, 255, 255, 0.12));
+	border-radius: 4px;
+}
+
 /* Radio group styling */
 .radio-group {
 	display: flex;

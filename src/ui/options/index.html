@@ -13,7 +13,9 @@
 				<span class="eyebrow">Settings & Keybinds</span>
 				<h1>Dissatisfied</h1>
 				<p class="muted">
-					Configure how the extension behaves and customize your shortcuts.
+					Hides clutter on YouTube and Twitter so you can focus on content. Toggle
+					with <kbd>`</kbd> on YouTube, <kbd>Ctrl+B</kbd> on Twitter, or the
+					shortcuts below.
 				</p>
 			</header>
 
@@ -21,11 +23,11 @@
 
 			<section class="stack" aria-labelledby="youtube-persistence-title">
 				<div class="section-title" id="youtube-persistence-title">
-					<span>YouTube Persistence Mode</span>
+					<span>YouTube Persistence</span>
 					<span class="pill">Configuration</span>
 				</div>
 
-				<p class="muted">Choose how YouTube focus mode behaves:</p>
+				<p class="muted">When focus mode is remembered:</p>
 
 				<div class="radio-group">
 					<label class="radio-option">
@@ -37,10 +39,9 @@
 							checked
 						/>
 						<div class="radio-content">
-							<strong>Per-Tab Mode (Default)</strong>
+							<strong>Per-Tab (Default)</strong>
 							<span class="muted"
-								>Each tab has its own state. Focus mode resets when you navigate
-								away or close the tab.</span
+								>Resets when you leave or close the tab.</span
 							>
 						</div>
 					</label>
@@ -53,10 +54,9 @@
 							id="youtube-mode-global"
 						/>
 						<div class="radio-content">
-							<strong>Global Mode</strong>
+							<strong>Global</strong>
 							<span class="muted"
-								>Focus mode persists across all YouTube tabs and sessions. Once
-								enabled, it stays enabled everywhere.</span
+								>Same state across all YouTube tabs.</span
 							>
 						</div>
 					</label>
@@ -66,22 +66,18 @@
 					<span class="status-message" id="save-status"></span>
 				</div>
 
-				<small class="muted note">
-					<strong>Note:</strong> Settings are saved automatically. In Global
-					Mode, your preference persists across all tabs and sessions. In
-					Per-Tab Mode (recommended), each tab is independent.
-				</small>
+				<small class="muted note">Settings save automatically.</small>
 			</section>
 
 			<div class="divider" role="separator" aria-hidden="true"></div>
 
 			<section class="stack" aria-labelledby="twitter-persistence-title">
 				<div class="section-title" id="twitter-persistence-title">
-					<span>Twitter/X Persistence Mode</span>
+					<span>Twitter/X Persistence</span>
 					<span class="pill">Configuration</span>
 				</div>
 
-				<p class="muted">Choose how Twitter/X focus mode behaves:</p>
+				<p class="muted">When focus mode is remembered:</p>
 
 				<div class="radio-group">
 					<label class="radio-option">
@@ -93,10 +89,9 @@
 							checked
 						/>
 						<div class="radio-content">
-							<strong>Per-Tab Mode (Default)</strong>
+							<strong>Per-Tab (Default)</strong>
 							<span class="muted"
-								>Each tab has its own state. Focus mode resets when you navigate
-								away or close the tab.</span
+								>Resets when you leave or close the tab.</span
 							>
 						</div>
 					</label>
@@ -109,19 +104,15 @@
 							id="twitter-mode-global"
 						/>
 						<div class="radio-content">
-							<strong>Global Mode</strong>
+							<strong>Global</strong>
 							<span class="muted"
-								>Focus mode persists across all Twitter/X tabs and sessions.
-								Once enabled, it stays enabled everywhere.</span
+								>Same state across all Twitter/X tabs.</span
 							>
 						</div>
 					</label>
 				</div>
 
-				<small class="muted note">
-					<strong>Note:</strong> Settings are saved automatically. Independent
-					from YouTube settings - control each platform separately.
-				</small>
+				<small class="muted note">Settings save automatically. Separate from YouTube.</small>
 			</section>
 
 			<div class="divider" role="separator" aria-hidden="true"></div>
@@ -132,9 +123,7 @@
 					<span class="pill">Customization</span>
 				</div>
 
-				<p class="muted">
-					Adjust how wide the Twitter/X timeline appears in focus mode:
-				</p>
+				<p class="muted">Timeline width in focus mode:</p>
 
 				<div class="slider-container">
 					<label for="twitter-width-slider" class="slider-label">
@@ -157,28 +146,27 @@
 					</div>
 				</div>
 
-				<small class="muted note">
-					Changes take effect the next time you toggle Twitter/X focus mode.
-				</small>
+				<small class="muted note">Applies next time you toggle.</small>
 			</section>
 
 			<div class="divider" role="separator" aria-hidden="true"></div>
 
 			<section class="stack" aria-labelledby="default-shortcuts-title">
 				<div class="section-title" id="default-shortcuts-title">
-					<span>Default shortcuts</span>
+					<span>Shortcuts</span>
 					<span class="pill">Default</span>
 				</div>
+
+				<p class="muted">
+					On the page: <kbd>`</kbd> on YouTube, <kbd>Ctrl+B</kbd> on Twitter. Or use the extension shortcuts below (customizable in your browser).
+				</p>
 
 				<div id="default-shortcuts-container">
 					<p class="muted">Loading default shortcuts...</p>
 				</div>
 
 				<small class="muted note">
-					This page does not auto-update when you change shortcuts in your
-					browser's shortcut editor. If you want to change the defaults shipped
-					with the extension, edit the
-					<code>commands</code> section in <code>manifest.json</code>.
+					To change defaults, edit <code>commands</code> in <code>manifest.json</code>. This page doesn’t auto-refresh after you change shortcuts in the browser.
 				</small>
 			</section>
 
@@ -195,9 +183,7 @@
 				</div>
 
 				<small class="muted note">
-					Shortcuts are managed by your browser's internal settings. Due to
-					security restrictions, extensions cannot directly open these pages.
-					Copy the URL above to access keyboard shortcut configuration.
+					Copy the URL above to open your browser’s shortcut editor. Extensions can’t open it directly.
 				</small>
 			</section>
 		</main>

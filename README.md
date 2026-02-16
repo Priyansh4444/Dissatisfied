@@ -12,13 +12,13 @@ A browser extension that provides keyboard shortcuts to toggle focus mode on You
 
 ### Focus Modes
 
-- **YouTube Focus Mode** (Ctrl+Shift+Y / Cmd+Shift+Y on Mac)
+- **YouTube Focus Mode** (Ctrl+Shift+Y / Cmd+Shift+Y on Mac, or **`** backtick on the page)
   - Automatically enables theater mode
   - Hides distracting sidebars and recommendations
   - Full-width video player
   - Scrollable page to access comments
 
-- **Twitter/X Focus Mode** (Ctrl+Shift+X / Cmd+Shift+X on Mac)
+- **Twitter/X Focus Mode** (Ctrl+Shift+X / Cmd+Shift+X on Mac, or **Ctrl+B** on the page)
   - Hides sidebars and trending topics
   - Centers and widens the main timeline
   - Removes header distractions
@@ -142,6 +142,8 @@ Access the options page to:
 Open the options page by clicking the extension icon or right-clicking it and selecting "Options".
 
 ### Customizing Shortcuts
+
+You can toggle focus mode from the page: press **`** (backtick) on YouTube, or **Ctrl+B** on Twitter/X. You can also use the extension shortcuts below (e.g. Ctrl+Shift+Y / Ctrl+Shift+X).
 
 **Chrome/Edge/Opera**
 
