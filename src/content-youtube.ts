@@ -37,6 +37,19 @@ const isYouTubePage = () => {
 // Track if we enabled theater mode
 let weEnabledTheater = false
 
+const isEditableTarget = (target: EventTarget | null): boolean => {
+	if (!(target instanceof HTMLElement)) {
+		return false
+	}
+
+	return (
+		target.isContentEditable ||
+		target.tagName === 'INPUT' ||
+		target.tagName === 'TEXTAREA' ||
+		target.tagName === 'SELECT'
+	)
+}
+
 // Apply YouTube styles
 function applyStyles() {
 	if (document.getElementById('dissatisfied-youtube-styles')) {
@@ -88,6 +101,16 @@ function removeStyles() {
 			weEnabledTheater = false
 		}, 100)
 	}
+}
+
+function toggleStyles() {
+	const isEnabled = !!document.getElementById('dissatisfied-youtube-styles')
+	if (isEnabled) {
+		removeStyles()
+		return
+	}
+
+	applyStyles()
 }
 
 // Check and apply initial state
@@ -159,6 +182,25 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 		removeStyles()
 		sendResponse({ success: true })
 	}
+})
+
+// Keyboard shortcut: press `~` to toggle on YouTube pages.
+document.addEventListener('keydown', (event) => {
+	if (!isYouTubePage()) {
+		return
+	}
+
+	if (isEditableTarget(event.target)) {
+		return
+	}
+
+	const isBackquote = event.key === '`' || event.code === 'Backquote'
+	if (!isBackquote) {
+		return
+	}
+
+	event.preventDefault()
+	toggleStyles()
 })
 
 // Initialize on page load

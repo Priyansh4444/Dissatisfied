@@ -12,6 +12,7 @@
 		"build:all": "NODE_ENV=\"production\" bun build.ts all",
 		"package:chrome": "bun run build:chrome && cd dist && zip -r ../dissatisfied-chrome.zip . && cd ..",
 		"package:firefox": "bun run build:firefox && cd dist-firefox && zip -r ../dissatisfied-firefox.zip . && cd ..",
+		"package:firefox:review": "NODE_ENV=production FIREFOX_FOR_REVIEW=1 bun build.ts firefox && cd dist-firefox && zip -r ../dissatisfied-firefox-for-review.zip . && cd ..",
 		"package:safari": "bun run build:safari && cd dist-safari && zip -r ../dissatisfied-safari.zip . && cd ..",
 		"package:all": "bun run build:all && cd dist && zip -r ../dissatisfied-chrome.zip . && cd .. && cd dist-firefox && zip -r ../dissatisfied-firefox.zip . && cd .. && cd dist-safari && zip -r ../dissatisfied-safari.zip . && cd ..",
 		"format": "prettier --write ."

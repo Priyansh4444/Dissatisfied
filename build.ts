@@ -63,6 +63,15 @@ async function buildExtension(target: BuildTarget = 'chrome') {
 		banner: `/* ${manifest.name} Content Scripts\n * Copyright (c) ${new Date().getFullYear()} ${manifest.author}\n */`,
 	})
 
+	// Safari: prepend webextension-polyfill to content scripts so chrome.* works
+	if (target === 'safari') {
+		for (const name of ['content-youtube.js', 'content-twitter.js']) {
+			const path = join(outdir, name)
+			const content = await Bun.file(path).text()
+			await Bun.write(path, `${chromePolyfill}\n\n${content}`)
+		}
+	}
+
 	// copy public files (excluding browser-specific manifests)
 	await $`cp public/icon*.png ${outdir}/`
 
@@ -112,6 +121,18 @@ async function buildExtension(target: BuildTarget = 'chrome') {
 				: 'Open Safari → Settings → Extensions',
 		)
 		await Bun.write(Bun.file(optionsPath), updatedHtml)
+	}
+
+	// Firefox Add-on review: include actual source code in the package
+	if (target === 'firefox' && process.env.FIREFOX_FOR_REVIEW === '1') {
+		const sourceDir = join(outdir, 'source')
+		await $`mkdir -p ${sourceDir}`.quiet()
+		await $`cp -r src ${sourceDir}/`.quiet()
+		await $`mkdir -p ${join(sourceDir, 'public')}`.quiet()
+		await $`cp public/manifest.firefox.json ${join(sourceDir, 'public')}/`.quiet()
+		await $`cp public/icon*.png ${join(sourceDir, 'public')}/`.nothrow().quiet()
+		await $`cp build.ts package.json tsconfig.json ${sourceDir}/`.quiet()
+		console.log(`✓ Added source code to ${outdir}/source/ for review`)
 	}
 
 	console.log(`✓ Built ${target} extension to ${outdir}/`)

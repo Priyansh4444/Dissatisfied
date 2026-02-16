@@ -1,6 +1,6 @@
 # Dissatisfied
 
-### NOTE: Safari version is not tested due to lack of access to Mac device.
+### NOTE: Safari version is not tested due to lack of access to Mac device
 
 Get rid of parts of UI when focusing on content.
 
@@ -37,6 +37,7 @@ Configure your preferences in the extension options page.
 ## Installation
 
 ### From Store
+
 - **Chrome Web Store**: Coming Soon
 - **Firefox Add-ons**: Coming Soon
 - **Safari Extensions**: Coming Soon
@@ -44,6 +45,7 @@ Configure your preferences in the extension options page.
 ### Manual Installation
 
 #### Chrome
+
 1. Build the extension: `bun run build:chrome`
 2. Open `chrome://extensions/`
 3. Enable "Developer mode"
@@ -51,12 +53,14 @@ Configure your preferences in the extension options page.
 5. Select the `dist/` folder
 
 #### Firefox
+
 1. Build the extension: `bun run build:firefox`
 2. Open `about:debugging#/runtime/this-firefox`
 3. Click "Load Temporary Add-on"
 4. Select any file in the `dist-firefox/` folder
 
 #### Safari
+
 1. Build the extension: `bun run build:safari`
 2. The `dist-safari/` folder contains the web extension
 3. For Safari, you'll need to create an Xcode project wrapper:
@@ -68,9 +72,11 @@ Configure your preferences in the extension options page.
 ## Development
 
 ### Prerequisites
+
 - [Bun](https://bun.sh/) installed
 
 ### Setup
+
 ```bash
 # Install dependencies
 bun install
@@ -128,6 +134,7 @@ bun run build:all
 ### Options Page
 
 Access the options page to:
+
 - Choose between Per-Tab and Global persistence modes
 - View keyboard shortcuts
 - Access your browser's shortcut editor
@@ -137,16 +144,19 @@ Open the options page by clicking the extension icon or right-clicking it and se
 ### Customizing Shortcuts
 
 **Chrome/Edge/Opera**
+
 1. Go to `chrome://extensions/shortcuts`
 2. Find "Dissatisfied"
 3. Click the pencil icon to customize
 
 **Firefox**
+
 1. Go to `about:addons`
 2. Click the gear icon → "Manage Extension Shortcuts"
 3. Find "Dissatisfied" and customize
 
 **Safari**
+
 1. Open Safari → Settings → Extensions
 2. Select "Dissatisfied"
 3. Configure shortcuts in the extension settings
@@ -192,6 +202,7 @@ See [LICENSE](LICENSE) for license information.
 ## Support
 
 For issues, feature requests, or questions:
+
 - Create an issue on GitHub
 - Visit the extension's homepage
 
