@@ -1,242 +1,434 @@
-// Storage keys
 const STORAGE_KEYS = {
 	YOUTUBE_PERSISTENCE_MODE: 'youtube_persistence_mode',
 	TWITTER_PERSISTENCE_MODE: 'twitter_persistence_mode',
 	TWITTER_WIDTH: 'twitter_width',
+	TWITTER_FONT_SIZE: 'twitter_font_size',
+	TWITTER_USE_DEFAULT_FONT: 'twitter_use_default_font',
+	TWITTER_FOCUS_CONTROLS: 'twitter_focus_controls',
 }
 
-// Default values
-const DEFAULTS = {
+const DEFAULT_TWITTER_CONTROLS = Object.freeze({
+	hideSidebarColumn: true,
+	hideChatDrawer: true,
+	hideGrokDrawer: true,
+	hideHeader: true,
+	centerTimeline: true,
+})
+
+const DEFAULTS = Object.freeze({
 	YOUTUBE_PERSISTENCE_MODE: 'tab',
 	TWITTER_PERSISTENCE_MODE: 'tab',
 	TWITTER_WIDTH: 80,
-}
-
-// DOM elements
-let saveStatus
-let youtubePersistenceModeInputs
-let twitterPersistenceModeInputs
-let twitterWidthSlider
-let twitterWidthValue
-
-// Initialize on DOM load
-document.addEventListener('DOMContentLoaded', async () => {
-	// Get DOM references
-	saveStatus = document.getElementById('save-status')
-	youtubePersistenceModeInputs = document.querySelectorAll(
-		'input[name="youtubePersistenceMode"]',
-	)
-	twitterPersistenceModeInputs = document.querySelectorAll(
-		'input[name="twitterPersistenceMode"]',
-	)
-	twitterWidthSlider = document.getElementById('twitter-width-slider')
-	twitterWidthValue = document.getElementById('twitter-width-value')
-
-	// Load saved settings
-	await loadSettings()
-
-	// Initialize shortcuts section
-	await initializeShortcutsSection()
-
-	// Add event listeners
-	youtubePersistenceModeInputs.forEach((input) => {
-		input.addEventListener('change', handleYoutubePersistenceModeChange)
-	})
-
-	twitterPersistenceModeInputs.forEach((input) => {
-		input.addEventListener('change', handleTwitterPersistenceModeChange)
-	})
-
-	twitterWidthSlider.addEventListener('input', handleTwitterWidthInput)
-	twitterWidthSlider.addEventListener('change', handleTwitterWidthChange)
+	TWITTER_FONT_SIZE: 15,
+	TWITTER_USE_DEFAULT_FONT: true,
+	TWITTER_FOCUS_CONTROLS: DEFAULT_TWITTER_CONTROLS,
 })
 
-// Load settings from storage
+const TWITTER_CONTROL_KEYS = Object.keys(DEFAULT_TWITTER_CONTROLS)
+const sliderSaveTimeouts = new Map()
+
+const dom = {
+	saveStatus: null,
+	youtubePersistenceModeInputs: [],
+	twitterPersistenceModeInputs: [],
+	twitterWidthSlider: null,
+	twitterWidthValue: null,
+	twitterFontSizeSlider: null,
+	twitterFontSizeValue: null,
+	twitterFontSizeRow: null,
+	twitterUseDefaultFont: null,
+	twitterControlInputs: [],
+	siteTabButtons: [],
+	sitePanels: [],
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+	cacheDom()
+	bindSettingsEvents()
+	await loadSettings()
+	await initializeShortcutsSection()
+})
+
+function cacheDom() {
+	dom.saveStatus = document.getElementById('save-status')
+	dom.youtubePersistenceModeInputs = Array.from(
+		document.querySelectorAll('input[name="youtubePersistenceMode"]'),
+	)
+	dom.twitterPersistenceModeInputs = Array.from(
+		document.querySelectorAll('input[name="twitterPersistenceMode"]'),
+	)
+	dom.twitterWidthSlider = document.getElementById('twitter-width-slider')
+	dom.twitterWidthValue = document.getElementById('twitter-width-value')
+	dom.twitterFontSizeSlider = document.getElementById(
+		'twitter-font-size-slider',
+	)
+	dom.twitterFontSizeValue = document.getElementById('twitter-font-size-value')
+	dom.twitterFontSizeRow = document.getElementById('twitter-font-size-row')
+	dom.twitterUseDefaultFont = document.getElementById(
+		'twitter-use-default-font',
+	)
+	dom.twitterControlInputs = Array.from(
+		document.querySelectorAll('input[data-control-key]'),
+	)
+	dom.siteTabButtons = Array.from(document.querySelectorAll('.site-tab'))
+	dom.sitePanels = Array.from(document.querySelectorAll('.website-panel'))
+}
+
+function bindSettingsEvents() {
+	initializeSiteTabs()
+
+	for (const input of dom.youtubePersistenceModeInputs) {
+		input.addEventListener('change', handleYoutubePersistenceModeChange)
+	}
+
+	for (const input of dom.twitterPersistenceModeInputs) {
+		input.addEventListener('change', handleTwitterPersistenceModeChange)
+	}
+
+	for (const input of dom.twitterControlInputs) {
+		input.addEventListener('change', handleTwitterControlChange)
+	}
+
+	if (dom.twitterWidthSlider) {
+		dom.twitterWidthSlider.addEventListener('input', handleTwitterWidthInput)
+		dom.twitterWidthSlider.addEventListener('change', handleTwitterWidthChange)
+	}
+
+	if (dom.twitterFontSizeSlider) {
+		dom.twitterFontSizeSlider.addEventListener(
+			'input',
+			handleTwitterFontSizeInput,
+		)
+		dom.twitterFontSizeSlider.addEventListener(
+			'change',
+			handleTwitterFontSizeChange,
+		)
+	}
+
+	if (dom.twitterUseDefaultFont) {
+		dom.twitterUseDefaultFont.addEventListener(
+			'change',
+			handleTwitterUseDefaultFontChange,
+		)
+	}
+
+}
+
+function initializeSiteTabs() {
+	if (dom.siteTabButtons.length === 0 || dom.sitePanels.length === 0) return
+
+	for (const button of dom.siteTabButtons) {
+		button.addEventListener('click', () => {
+			const siteName = button.dataset.siteTab
+			if (!siteName) return
+			setActiveSite(siteName)
+		})
+	}
+}
+
+function setActiveSite(siteName) {
+	for (const button of dom.siteTabButtons) {
+		const isActive = button.dataset.siteTab === siteName
+		button.classList.toggle('is-active', isActive)
+		button.setAttribute('aria-selected', String(isActive))
+	}
+
+	for (const panel of dom.sitePanels) {
+		const isActive = panel.dataset.sitePanel === siteName
+		panel.classList.toggle('is-active', isActive)
+	}
+}
+
 async function loadSettings() {
 	try {
 		const result = await chrome.storage.local.get([
 			STORAGE_KEYS.YOUTUBE_PERSISTENCE_MODE,
 			STORAGE_KEYS.TWITTER_PERSISTENCE_MODE,
 			STORAGE_KEYS.TWITTER_WIDTH,
+			STORAGE_KEYS.TWITTER_FONT_SIZE,
+			STORAGE_KEYS.TWITTER_USE_DEFAULT_FONT,
+			STORAGE_KEYS.TWITTER_FOCUS_CONTROLS,
 		])
 
-		// Load YouTube persistence mode
 		const youtubePersistenceMode =
 			result[STORAGE_KEYS.YOUTUBE_PERSISTENCE_MODE] ||
 			DEFAULTS.YOUTUBE_PERSISTENCE_MODE
-		const youtubeModeInput = document.getElementById(
-			`youtube-mode-${youtubePersistenceMode}`,
-		)
-		if (youtubeModeInput) {
-			youtubeModeInput.checked = true
-		}
-
-		// Load Twitter persistence mode
 		const twitterPersistenceMode =
 			result[STORAGE_KEYS.TWITTER_PERSISTENCE_MODE] ||
 			DEFAULTS.TWITTER_PERSISTENCE_MODE
-		const twitterModeInput = document.getElementById(
-			`twitter-mode-${twitterPersistenceMode}`,
+		const twitterWidth = sanitizeNumber(
+			result[STORAGE_KEYS.TWITTER_WIDTH],
+			DEFAULTS.TWITTER_WIDTH,
 		)
-		if (twitterModeInput) {
-			twitterModeInput.checked = true
-		}
+		const twitterFontSize = sanitizeNumber(
+			result[STORAGE_KEYS.TWITTER_FONT_SIZE],
+			DEFAULTS.TWITTER_FONT_SIZE,
+		)
+		const twitterUseDefaultFont =
+			result[STORAGE_KEYS.TWITTER_USE_DEFAULT_FONT] !== false
+		const twitterControls = sanitizeTwitterControls(
+			result[STORAGE_KEYS.TWITTER_FOCUS_CONTROLS],
+		)
 
-		// Load Twitter width
-		const twitterWidth =
-			result[STORAGE_KEYS.TWITTER_WIDTH] || DEFAULTS.TWITTER_WIDTH
-		if (twitterWidthSlider) {
-			twitterWidthSlider.value = twitterWidth
-			updateTwitterWidthDisplay(twitterWidth)
-		}
-
-		// Update CSS variable for Twitter width
-		updateTwitterWidthCSS(twitterWidth)
+		applyRadioSelection('youtube-mode', youtubePersistenceMode)
+		applyRadioSelection('twitter-mode', twitterPersistenceMode)
+		applyTwitterWidth(twitterWidth)
+		applyTwitterFontSize(twitterFontSize)
+		applyTwitterUseDefaultFont(twitterUseDefaultFont)
+		applyTwitterControls(twitterControls)
 	} catch (error) {
 		console.error('Error loading settings:', error)
 		showStatus('Error loading settings', 'error')
 	}
 }
 
-// Handle YouTube persistence mode change
+function sanitizeNumber(value, fallback) {
+	const numericValue = Number(value)
+	return Number.isFinite(numericValue) ? numericValue : fallback
+}
+
+function sanitizeTwitterControls(rawValue) {
+	const normalized = { ...DEFAULT_TWITTER_CONTROLS }
+	if (!rawValue || typeof rawValue !== 'object') {
+		return normalized
+	}
+
+	for (const key of TWITTER_CONTROL_KEYS) {
+		if (typeof rawValue[key] === 'boolean') {
+			normalized[key] = rawValue[key]
+		}
+	}
+
+	return normalized
+}
+
+function applyRadioSelection(prefix, value) {
+	const modeInput = document.getElementById(`${prefix}-${value}`)
+	if (modeInput) {
+		modeInput.checked = true
+	}
+}
+
+function applyTwitterWidth(width) {
+	const safeWidth = Math.min(100, Math.max(30, width))
+	if (dom.twitterWidthSlider) {
+		dom.twitterWidthSlider.value = String(safeWidth)
+	}
+	if (dom.twitterWidthValue) {
+		dom.twitterWidthValue.textContent = `${safeWidth}%`
+	}
+	document.documentElement.style.setProperty('--twitter-width', `${safeWidth}%`)
+}
+
+function applyTwitterFontSize(fontSize) {
+	const safeFontSize = Math.min(22, Math.max(13, fontSize))
+	if (dom.twitterFontSizeSlider) {
+		dom.twitterFontSizeSlider.value = String(safeFontSize)
+	}
+	if (dom.twitterFontSizeValue) {
+		dom.twitterFontSizeValue.textContent = `${safeFontSize}px`
+	}
+	document.documentElement.style.setProperty(
+		'--twitter-font-size',
+		`${safeFontSize}px`,
+	)
+}
+
+function applyTwitterUseDefaultFont(useDefault) {
+	if (dom.twitterUseDefaultFont) dom.twitterUseDefaultFont.checked = useDefault
+	if (dom.twitterFontSizeRow) {
+		dom.twitterFontSizeRow.hidden = useDefault
+	}
+}
+
+
+function applyTwitterControls(controls) {
+	for (const input of dom.twitterControlInputs) {
+		const controlKey = input.dataset.controlKey
+		if (!controlKey) continue
+		input.checked = Boolean(controls[controlKey])
+	}
+}
+
+function getTwitterControlsFromForm() {
+	const controls = { ...DEFAULT_TWITTER_CONTROLS }
+	for (const input of dom.twitterControlInputs) {
+		const controlKey = input.dataset.controlKey
+		if (!controlKey || !(controlKey in controls)) continue
+		controls[controlKey] = input.checked
+	}
+	controls.hideHeader = controls.centerTimeline
+	return controls
+}
+
 async function handleYoutubePersistenceModeChange(event) {
 	const mode = event.target.value
-
-	try {
-		// Save to storage
-		await chrome.storage.local.set({
-			[STORAGE_KEYS.YOUTUBE_PERSISTENCE_MODE]: mode,
-		})
-
-		// Show success message
-		showStatus('Saved!', 'success')
-
-		console.log(`YouTube persistence mode changed to: ${mode}`)
-	} catch (error) {
-		console.error('Error saving YouTube persistence mode:', error)
-		showStatus('Error saving settings', 'error')
-	}
+	await saveSetting(
+		STORAGE_KEYS.YOUTUBE_PERSISTENCE_MODE,
+		mode,
+		'YouTube preference saved',
+	)
 }
 
-// Handle Twitter persistence mode change
 async function handleTwitterPersistenceModeChange(event) {
 	const mode = event.target.value
-
-	try {
-		// Save to storage
-		await chrome.storage.local.set({
-			[STORAGE_KEYS.TWITTER_PERSISTENCE_MODE]: mode,
-		})
-
-		// Show success message
-		showStatus('Saved!', 'success')
-
-		console.log(`Twitter persistence mode changed to: ${mode}`)
-	} catch (error) {
-		console.error('Error saving Twitter persistence mode:', error)
-		showStatus('Error saving settings', 'error')
-	}
+	await saveSetting(
+		STORAGE_KEYS.TWITTER_PERSISTENCE_MODE,
+		mode,
+		'Twitter/X preference saved',
+	)
 }
 
-// Handle Twitter width slider input (live preview)
+async function handleTwitterControlChange() {
+	const controls = getTwitterControlsFromForm()
+	await saveSetting(
+		STORAGE_KEYS.TWITTER_FOCUS_CONTROLS,
+		controls,
+		'Twitter/X controls saved',
+	)
+}
+
 function handleTwitterWidthInput(event) {
-	const width = parseInt(event.target.value)
-	updateTwitterWidthDisplay(width)
-	updateTwitterWidthCSS(width)
+	const width = sanitizeNumber(event.target.value, DEFAULTS.TWITTER_WIDTH)
+	applyTwitterWidth(width)
+	queueSliderSave({
+		storageKey: STORAGE_KEYS.TWITTER_WIDTH,
+		value: width,
+		successMessage: 'Twitter/X width saved',
+	})
 }
 
-// Handle Twitter width slider change (save)
 async function handleTwitterWidthChange(event) {
-	const width = parseInt(event.target.value)
+	const width = sanitizeNumber(event.target.value, DEFAULTS.TWITTER_WIDTH)
+	applyTwitterWidth(width)
+	cancelQueuedSliderSave(STORAGE_KEYS.TWITTER_WIDTH)
+	await saveSetting(STORAGE_KEYS.TWITTER_WIDTH, width, 'Twitter/X width saved')
+}
 
+function handleTwitterFontSizeInput(event) {
+	const fontSize = sanitizeNumber(
+		event.target.value,
+		DEFAULTS.TWITTER_FONT_SIZE,
+	)
+	applyTwitterFontSize(fontSize)
+	queueSliderSave({
+		storageKey: STORAGE_KEYS.TWITTER_FONT_SIZE,
+		value: fontSize,
+		successMessage: 'Twitter/X font size saved',
+	})
+}
+
+async function handleTwitterFontSizeChange(event) {
+	const fontSize = sanitizeNumber(
+		event.target.value,
+		DEFAULTS.TWITTER_FONT_SIZE,
+	)
+	applyTwitterFontSize(fontSize)
+	cancelQueuedSliderSave(STORAGE_KEYS.TWITTER_FONT_SIZE)
+	await saveSetting(
+		STORAGE_KEYS.TWITTER_FONT_SIZE,
+		fontSize,
+		'Twitter/X font size saved',
+	)
+}
+
+async function handleTwitterUseDefaultFontChange(event) {
+	const useDefault = event.target.checked
+	applyTwitterUseDefaultFont(useDefault)
+	await saveSetting(STORAGE_KEYS.TWITTER_USE_DEFAULT_FONT, useDefault, 'Saved')
+}
+
+
+function queueSliderSave({ storageKey, value, successMessage }) {
+	cancelQueuedSliderSave(storageKey)
+	const timeoutId = setTimeout(() => {
+		saveSetting(storageKey, value, successMessage)
+		sliderSaveTimeouts.delete(storageKey)
+	}, 150)
+	sliderSaveTimeouts.set(storageKey, timeoutId)
+}
+
+function cancelQueuedSliderSave(storageKey) {
+	const timeoutId = sliderSaveTimeouts.get(storageKey)
+	if (timeoutId) {
+		clearTimeout(timeoutId)
+		sliderSaveTimeouts.delete(storageKey)
+	}
+}
+
+async function saveSetting(storageKey, value, successMessage = 'Saved!') {
 	try {
-		// Save to storage
-		await chrome.storage.local.set({
-			[STORAGE_KEYS.TWITTER_WIDTH]: width,
-		})
-
-		// Update CSS variable
-		updateTwitterWidthCSS(width)
-
-		// Show success message
-		showStatus('Saved!', 'success')
-
-		console.log(`Twitter width changed to: ${width}%`)
+		await chrome.storage.local.set({ [storageKey]: value })
+		showStatus(successMessage, 'success')
 	} catch (error) {
-		console.error('Error saving Twitter width:', error)
+		console.error(`Error saving setting ${storageKey}:`, error)
 		showStatus('Error saving settings', 'error')
 	}
 }
 
-// Update Twitter width display value
-function updateTwitterWidthDisplay(width) {
-	if (twitterWidthValue) {
-		twitterWidthValue.textContent = `${width}%`
-	}
-}
-
-// Update CSS variable for Twitter width (for live preview)
-function updateTwitterWidthCSS(width) {
-	document.documentElement.style.setProperty('--twitter-width', `${width}%`)
-}
-
-// Show status message
 function showStatus(message, type = 'success') {
-	if (!saveStatus) return
+	if (!dom.saveStatus) return
 
-	// Clear any existing timeout
-	if (saveStatus.timeoutId) {
-		clearTimeout(saveStatus.timeoutId)
+	if (dom.saveStatus.timeoutId) {
+		clearTimeout(dom.saveStatus.timeoutId)
 	}
 
-	// Set message and class
-	saveStatus.textContent = message
-	saveStatus.className = `status-message ${type}`
-	saveStatus.style.opacity = '1'
+	dom.saveStatus.textContent = message
+	dom.saveStatus.className = `status-message ${type}`
+	dom.saveStatus.style.opacity = '1'
 
-	// Hide after 2 seconds
-	saveStatus.timeoutId = setTimeout(() => {
-		saveStatus.style.opacity = '0'
+	dom.saveStatus.timeoutId = setTimeout(() => {
+		dom.saveStatus.style.opacity = '0'
 		setTimeout(() => {
-			saveStatus.textContent = ''
-			saveStatus.className = 'status-message'
+			dom.saveStatus.textContent = ''
+			dom.saveStatus.className = 'status-message'
 		}, 300)
 	}, 2000)
 }
 
-// Listen for storage changes from other tabs/windows
 chrome.storage.onChanged.addListener((changes, areaName) => {
 	if (areaName !== 'local') return
 
-	// Update YouTube persistence mode if changed
 	if (changes[STORAGE_KEYS.YOUTUBE_PERSISTENCE_MODE]) {
-		const newMode = changes[STORAGE_KEYS.YOUTUBE_PERSISTENCE_MODE].newValue
-		const modeInput = document.getElementById(`youtube-mode-${newMode}`)
-		if (modeInput && !modeInput.checked) {
-			modeInput.checked = true
-		}
+		const nextMode = changes[STORAGE_KEYS.YOUTUBE_PERSISTENCE_MODE].newValue
+		applyRadioSelection('youtube-mode', nextMode)
 	}
 
-	// Update Twitter persistence mode if changed
 	if (changes[STORAGE_KEYS.TWITTER_PERSISTENCE_MODE]) {
-		const newMode = changes[STORAGE_KEYS.TWITTER_PERSISTENCE_MODE].newValue
-		const modeInput = document.getElementById(`twitter-mode-${newMode}`)
-		if (modeInput && !modeInput.checked) {
-			modeInput.checked = true
-		}
+		const nextMode = changes[STORAGE_KEYS.TWITTER_PERSISTENCE_MODE].newValue
+		applyRadioSelection('twitter-mode', nextMode)
 	}
 
-	// Update Twitter width if changed
 	if (changes[STORAGE_KEYS.TWITTER_WIDTH]) {
-		const newWidth = changes[STORAGE_KEYS.TWITTER_WIDTH].newValue
-		if (
-			twitterWidthSlider &&
-			twitterWidthSlider.value !== newWidth.toString()
-		) {
-			twitterWidthSlider.value = newWidth
-			updateTwitterWidthDisplay(newWidth)
-			updateTwitterWidthCSS(newWidth)
-		}
+		applyTwitterWidth(
+			sanitizeNumber(
+				changes[STORAGE_KEYS.TWITTER_WIDTH].newValue,
+				DEFAULTS.TWITTER_WIDTH,
+			),
+		)
+	}
+
+	if (changes[STORAGE_KEYS.TWITTER_FONT_SIZE]) {
+		applyTwitterFontSize(
+			sanitizeNumber(
+				changes[STORAGE_KEYS.TWITTER_FONT_SIZE].newValue,
+				DEFAULTS.TWITTER_FONT_SIZE,
+			),
+		)
+	}
+
+	if (changes[STORAGE_KEYS.TWITTER_FOCUS_CONTROLS]) {
+		applyTwitterControls(
+			sanitizeTwitterControls(
+				changes[STORAGE_KEYS.TWITTER_FOCUS_CONTROLS].newValue,
+			),
+		)
+	}
+
+	if (changes[STORAGE_KEYS.TWITTER_USE_DEFAULT_FONT]) {
+		applyTwitterUseDefaultFont(
+			changes[STORAGE_KEYS.TWITTER_USE_DEFAULT_FONT].newValue !== false,
+		)
 	}
 })
 

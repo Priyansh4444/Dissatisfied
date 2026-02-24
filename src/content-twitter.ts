@@ -1,35 +1,16 @@
-// Rust-style TypeScript for Twitter content script
-
-// ============================================================================
-// CRITICAL: Register message listener FIRST before any other code
-// This ensures the content script can receive messages from background
-// even if the DOM isn't ready yet (when using run_at: document_start)
-// ============================================================================
-
-chrome.runtime.onMessage.addListener(
-	(
-		message: { action: string },
-		_sender: chrome.runtime.MessageSender,
-		sendResponse: (response: { success: boolean }) => void,
-	) => {
-		if (message.action === 'apply-twitter-styles') {
-			activate().then(() => sendResponse({ success: true }))
-			return true
-		}
-
-		if (message.action === 'remove-twitter-styles') {
-			deactivate()
-			sendResponse({ success: true })
-			return false
-		}
-
-		return false
-	},
-)
-
-// ============================================================================
-// Types
-// ============================================================================
+import {
+	DEFAULTS,
+	STORAGE_KEYS,
+	type TwitterFocusControls,
+	isTwitterHost,
+} from './shared/extension-settings.ts'
+import {
+	isEditableTarget,
+	isTwitterControlBShortcut,
+	isTwitterOptionShiftXShortcut,
+	isTwitterToggleShortcut,
+	requestBackgroundToggle,
+} from './shared/shortcut-utils.ts'
 
 type Result<T, E = Error> = { ok: true; value: T } | { ok: false; error: E }
 
@@ -41,37 +22,32 @@ interface StorageResult {
 	[key: string]: unknown
 }
 
-// ============================================================================
-// Constants
-// ============================================================================
+interface TwitterSettings {
+	width: number
+	fontSize: number
+	useDefaultFont: boolean
+	controls: TwitterFocusControls
+}
 
-const STORAGE_KEY = 'twitter_state' as const
-const TWITTER_WIDTH_KEY = 'twitter_width' as const
-const DEFAULT_TWITTER_WIDTH = 80 as const
 const STYLESHEET_ID = 'dissatisfied-twitter-styles' as const
 const TOGGLE_BUTTON_ID = 'dissatisfied-toggle-btn' as const
 const ACTIVE_CLASS = 'dissatisfied-active' as const
-
-const TWITTER_HOSTS: ReadonlyArray<string> = [
-	'twitter.com',
-	'www.twitter.com',
-	'x.com',
-	'www.x.com',
+const TWITTER_CLASS_NAMES = [
+	'dissatisfied-twitter-custom-font',
+	'dissatisfied-twitter-hide-sidebar',
+	'dissatisfied-twitter-hide-chat',
+	'dissatisfied-twitter-hide-grok',
+	'dissatisfied-twitter-hide-header',
+	'dissatisfied-twitter-center-timeline',
 ] as const
-
-// ============================================================================
-// Result Helpers
-// ============================================================================
+const TWITTER_VARIABLE_NAMES = [
+	'--twitter-width',
+	'--twitter-font-size',
+	'--twitter-icon-scale',
+] as const
 
 const ok = <T>(value: T): Result<T> => ({ ok: true, value })
 const err = <E>(error: E): Result<never, E> => ({ ok: false, error })
-
-// ============================================================================
-// Pure Functions
-// ============================================================================
-
-const isTwitterHost = (hostname: string): boolean =>
-	TWITTER_HOSTS.includes(hostname)
 
 const isTwitterPage = (): boolean => isTwitterHost(window.location.hostname)
 
@@ -81,17 +57,6 @@ const isExtensionContextValid = (): boolean => {
 	} catch {
 		return false
 	}
-}
-
-const isEditableTarget = (target: EventTarget | null): boolean => {
-	if (!(target instanceof HTMLElement)) return false
-
-	return (
-		target.isContentEditable ||
-		target.tagName === 'INPUT' ||
-		target.tagName === 'TEXTAREA' ||
-		target.tagName === 'SELECT'
-	)
 }
 
 // ============================================================================
@@ -149,10 +114,6 @@ const getInjectionTarget = (): HTMLElement | null => {
 	return null
 }
 
-// ============================================================================
-// Storage Operations (Result-based)
-// ============================================================================
-
 const getStorageValue = async <T>(
 	key: string,
 	defaultValue: T,
@@ -170,15 +131,87 @@ const getStorageValue = async <T>(
 	}
 }
 
-const getTwitterWidth = (): Promise<Result<number>> =>
-	getStorageValue<number>(TWITTER_WIDTH_KEY, DEFAULT_TWITTER_WIDTH)
-
 const getTwitterState = (): Promise<Result<TwitterState>> =>
-	getStorageValue<TwitterState>(STORAGE_KEY, { enabled: false })
+	getStorageValue<TwitterState>(STORAGE_KEYS.TWITTER_STATE, { enabled: false })
 
-// ============================================================================
-// Stylesheet Management
-// ============================================================================
+const getNumberSetting = (rawValue: unknown, fallback: number): number => {
+	const numericValue = Number(rawValue)
+	return Number.isFinite(numericValue) ? numericValue : fallback
+}
+
+const getAllTwitterSettings = async (): Promise<TwitterSettings> => {
+	const keys = [
+		STORAGE_KEYS.TWITTER_WIDTH,
+		STORAGE_KEYS.TWITTER_FONT_SIZE,
+		STORAGE_KEYS.TWITTER_USE_DEFAULT_FONT,
+		STORAGE_KEYS.TWITTER_FOCUS_CONTROLS,
+	]
+	const raw = await chrome.storage.local.get(keys)
+	const width = getNumberSetting(
+		raw[STORAGE_KEYS.TWITTER_WIDTH],
+		DEFAULTS.TWITTER_WIDTH,
+	)
+	const fontSize = getNumberSetting(
+		raw[STORAGE_KEYS.TWITTER_FONT_SIZE],
+		DEFAULTS.TWITTER_FONT_SIZE,
+	)
+	const useDefaultFont = raw[STORAGE_KEYS.TWITTER_USE_DEFAULT_FONT] !== false
+	const rawControls = raw[STORAGE_KEYS.TWITTER_FOCUS_CONTROLS] as
+		| Partial<TwitterFocusControls>
+		| undefined
+	const controls: TwitterFocusControls = {
+		...DEFAULTS.TWITTER_FOCUS_CONTROLS,
+		...(rawControls && typeof rawControls === 'object' ? rawControls : {}),
+	}
+	controls.hideHeader = controls.centerTimeline
+	return { width, fontSize, useDefaultFont, controls }
+}
+
+const clearTwitterStyleState = (root: HTMLElement): void => {
+	root.classList.remove(...TWITTER_CLASS_NAMES)
+	for (const variableName of TWITTER_VARIABLE_NAMES) {
+		root.style.removeProperty(variableName)
+	}
+}
+
+const applyTwitterSettingsToDocument = (settings: TwitterSettings): void => {
+	const root = document.documentElement
+	root.style.setProperty('--twitter-width', `${settings.width}%`)
+
+	if (!settings.useDefaultFont) {
+		root.classList.add('dissatisfied-twitter-custom-font')
+		root.style.setProperty('--twitter-font-size', `${settings.fontSize}px`)
+		root.style.setProperty(
+			'--twitter-icon-scale',
+			String(1 + (settings.fontSize / 15 - 1) * 0.5),
+		)
+	} else {
+		root.classList.remove('dissatisfied-twitter-custom-font')
+		root.style.removeProperty('--twitter-font-size')
+		root.style.removeProperty('--twitter-icon-scale')
+	}
+
+	root.classList.toggle(
+		'dissatisfied-twitter-hide-sidebar',
+		Boolean(settings.controls.hideSidebarColumn),
+	)
+	root.classList.toggle(
+		'dissatisfied-twitter-hide-chat',
+		Boolean(settings.controls.hideChatDrawer),
+	)
+	root.classList.toggle(
+		'dissatisfied-twitter-hide-grok',
+		Boolean(settings.controls.hideGrokDrawer),
+	)
+	root.classList.toggle(
+		'dissatisfied-twitter-hide-header',
+		Boolean(settings.controls.hideHeader),
+	)
+	root.classList.toggle(
+		'dissatisfied-twitter-center-timeline',
+		Boolean(settings.controls.centerTimeline),
+	)
+}
 
 const injectStylesheet = (): Result<HTMLLinkElement> => {
 	if (!isExtensionContextValid()) {
@@ -206,25 +239,6 @@ const removeStylesheet = (): void => {
 	getStylesheet()?.remove()
 }
 
-// ============================================================================
-// Width CSS Variable
-// ============================================================================
-
-const applyWidthVariable = async (): Promise<Result<void>> => {
-	const widthResult = await getTwitterWidth()
-	if (!widthResult.ok) return widthResult
-
-	document.documentElement.style.setProperty(
-		'--twitter-width',
-		`${widthResult.value}%`,
-	)
-	return ok(undefined)
-}
-
-// ============================================================================
-// Active State Management
-// ============================================================================
-
 const isActive = (): boolean =>
 	document.documentElement.classList.contains(ACTIVE_CLASS)
 
@@ -245,14 +259,14 @@ const activate = async (): Promise<Result<void>> => {
 	const stylesheetResult = injectStylesheet()
 	if (!stylesheetResult.ok) return stylesheetResult
 
-	const widthResult = await applyWidthVariable()
-	if (!widthResult.ok) return widthResult
-
+	const settings = await getAllTwitterSettings()
+	applyTwitterSettingsToDocument(settings)
 	setActive(true)
 	return ok(undefined)
 }
 
 const deactivate = (): void => {
+	clearTwitterStyleState(document.documentElement)
 	setActive(false)
 	// Note: we keep the stylesheet loaded for transitions
 }
@@ -269,37 +283,18 @@ const toggle = async (): Promise<Result<void>> => {
 // Toggle Button Creation
 // ============================================================================
 
-const SVG_NS = 'http://www.w3.org/2000/svg'
+const ICON_SVG = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+	<rect x="3" y="3" width="18" height="18" rx="3"/>
+	<line x1="9" y1="3" x2="9" y2="21"/>
+</svg>`
 
-// Create SVG icon using safe DOM APIs (no innerHTML)
-const createIcon = (): SVGSVGElement => {
-	const svg = document.createElementNS(SVG_NS, 'svg')
-	svg.setAttribute('viewBox', '0 0 24 24')
-	svg.setAttribute('width', '18')
-	svg.setAttribute('height', '18')
-	svg.setAttribute('fill', 'none')
-	svg.setAttribute('stroke', 'currentColor')
-	svg.setAttribute('stroke-width', '2')
-	svg.setAttribute('stroke-linecap', 'round')
-	svg.setAttribute('stroke-linejoin', 'round')
-
-	const rect = document.createElementNS(SVG_NS, 'rect')
-	rect.setAttribute('x', '3')
-	rect.setAttribute('y', '3')
-	rect.setAttribute('width', '18')
-	rect.setAttribute('height', '18')
-	rect.setAttribute('rx', '3')
-
-	const line = document.createElementNS(SVG_NS, 'line')
-	line.setAttribute('x1', '9')
-	line.setAttribute('y1', '3')
-	line.setAttribute('x2', '9')
-	line.setAttribute('y2', '21')
-
-	svg.appendChild(rect)
-	svg.appendChild(line)
-
-	return svg
+const alignButtonToRight = (button: HTMLButtonElement, target: HTMLElement) => {
+	const style = window.getComputedStyle(target)
+	const isFlexRow = style.display.includes('flex')
+	if (isFlexRow) {
+		button.style.marginLeft = 'auto'
+		button.style.marginRight = '0'
+	}
 }
 
 const createToggleButton = (): HTMLButtonElement => {
@@ -310,13 +305,8 @@ const createToggleButton = (): HTMLButtonElement => {
 	button.type = 'button'
 	button.setAttribute('aria-pressed', String(active))
 	button.setAttribute('aria-label', 'Toggle clean view')
+	button.innerHTML = ICON_SVG
 
-	const icon = createIcon()
-	icon.style.opacity = active ? '1' : '0.6'
-	icon.style.transition = 'opacity 0.2s'
-	button.appendChild(icon)
-
-	// Minimal styling - matches Twitter's icon buttons
 	Object.assign(button.style, {
 		display: 'flex',
 		alignItems: 'center',
@@ -333,7 +323,12 @@ const createToggleButton = (): HTMLButtonElement => {
 		transition: 'background-color 0.2s, color 0.2s',
 	} as CSSStyleDeclaration)
 
-	// Hover effect - subtle background like Twitter's buttons
+	const icon = button.querySelector('svg')
+	if (icon) {
+		;(icon as SVGElement).style.opacity = active ? '1' : '0.6'
+		;(icon as SVGElement).style.transition = 'opacity 0.2s'
+	}
+
 	button.addEventListener('mouseenter', () => {
 		button.style.backgroundColor = 'rgba(29, 155, 240, 0.1)'
 		button.style.color = 'rgb(29, 155, 240)'
@@ -344,7 +339,6 @@ const createToggleButton = (): HTMLButtonElement => {
 		button.style.color = 'rgb(113, 118, 123)'
 	})
 
-	// Click handler
 	button.addEventListener('click', (e) => {
 		e.preventDefault()
 		e.stopPropagation()
@@ -364,6 +358,7 @@ const injectToggleButton = (): Result<HTMLButtonElement> => {
 	}
 
 	const button = createToggleButton()
+	alignButtonToRight(button, target)
 	target.appendChild(button)
 
 	return ok(button)
@@ -376,11 +371,7 @@ const injectToggleButton = (): Result<HTMLButtonElement> => {
 const initialize = async (): Promise<void> => {
 	if (!isTwitterPage()) return
 
-	// Always inject stylesheet (needed for button to exist in CSS context)
 	injectStylesheet()
-
-	// Apply width variable
-	await applyWidthVariable()
 
 	// Check stored state and apply if enabled
 	const stateResult = await getTwitterState()
@@ -396,18 +387,12 @@ const initialize = async (): Promise<void> => {
 // Event Listeners
 // ============================================================================
 
-const channel = new BroadcastChannel('dissatisfied-twitter')
-
-channel.onmessage = (event: MessageEvent<{ action: string }>) => {
-	if (!isTwitterPage()) return
-
-	const { action } = event.data
-	if (action === 'enable') {
-		activate()
-	} else if (action === 'disable') {
-		deactivate()
-	}
-}
+const twitterLayoutSettingKeys = [
+	STORAGE_KEYS.TWITTER_WIDTH,
+	STORAGE_KEYS.TWITTER_FONT_SIZE,
+	STORAGE_KEYS.TWITTER_USE_DEFAULT_FONT,
+	STORAGE_KEYS.TWITTER_FOCUS_CONTROLS,
+]
 
 chrome.storage.onChanged.addListener(
 	async (
@@ -418,40 +403,64 @@ chrome.storage.onChanged.addListener(
 		if (!isTwitterPage()) return
 		if (!isExtensionContextValid()) return
 
-		if (changes[STORAGE_KEY]) {
-			const newState = changes[STORAGE_KEY].newValue as
-				| TwitterState
-				| undefined
+		const stateChange = changes[STORAGE_KEYS.TWITTER_STATE]
+		if (stateChange) {
+			const newState = stateChange.newValue as TwitterState | undefined
 			if (newState?.enabled) {
 				await activate()
-				channel.postMessage({ action: 'enable' })
 			} else {
 				deactivate()
-				channel.postMessage({ action: 'disable' })
 			}
+			return
 		}
 
-		if (changes[TWITTER_WIDTH_KEY]) {
-			await applyWidthVariable()
+		const layoutChanged = twitterLayoutSettingKeys.some((key) => changes[key])
+		if (layoutChanged && isActive()) {
+			const settings = await getAllTwitterSettings()
+			applyTwitterSettingsToDocument(settings)
 		}
 	},
 )
 
-// Message listener is registered at the top of the file
+chrome.runtime.onMessage.addListener(
+	(
+		message: { action: string },
+		_sender: chrome.runtime.MessageSender,
+		sendResponse: (response: { success: boolean }) => void,
+	) => {
+		if (!isTwitterPage()) return false
+
+		if (message.action === 'apply-twitter-styles') {
+			activate().then(() => sendResponse({ success: true }))
+			return true
+		}
+
+		if (message.action === 'remove-twitter-styles') {
+			deactivate()
+			sendResponse({ success: true })
+			return false
+		}
+
+		return false
+	},
+)
 
 document.addEventListener(
 	'keydown',
 	(event) => {
 		if (!isTwitterPage()) return
 		if (isEditableTarget(event.target)) return
+		const isControlB = isTwitterControlBShortcut(event)
+		const isOptionShiftX = isTwitterOptionShiftXShortcut(event)
+		if (!isControlB && !isOptionShiftX) return
 
-		const isControlB = event.ctrlKey && !event.altKey && !event.metaKey
-		if (!isControlB) return
-		if (event.key.toLowerCase() !== 'b') return
-
+		// Always consume the shortcut so browser defaults (like Firefox bookmarks) don't fire.
 		event.preventDefault()
 		event.stopPropagation()
-		void toggle()
+
+		void requestBackgroundToggle('toggle-twitter-style', () => {
+			void toggle()
+		})
 	},
 	true,
 )
@@ -461,18 +470,23 @@ document.addEventListener(
 // ============================================================================
 
 let currentUrl = location.href
+let observerTickScheduled = false
 
 const observerCallback = (): void => {
-	// Re-inject button if it was removed (Twitter re-renders)
-	if (!getToggleButton()) {
-		injectToggleButton()
-	}
+	if (observerTickScheduled) return
+	observerTickScheduled = true
+	requestAnimationFrame(() => {
+		observerTickScheduled = false
 
-	// Handle SPA navigation
-	if (location.href !== currentUrl) {
-		currentUrl = location.href
-		initialize()
-	}
+		if (!getToggleButton()) {
+			injectToggleButton()
+		}
+
+		if (location.href !== currentUrl) {
+			currentUrl = location.href
+			void initialize()
+		}
+	})
 }
 
 const startObserver = (): void => {

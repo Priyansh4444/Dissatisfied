@@ -20,20 +20,31 @@ article {
 }
 
 /* ============================================================================
- * Active State: Hide Sidebars
+ * Active State: Hide Right Sidebar Only (not left nav)
  * ============================================================================ */
 
-html.dissatisfied-active [data-testid='sidebarColumn'],
-html.dissatisfied-active [data-testid='chat-drawer-root'],
-html.dissatisfied-active [data-testid='GrokDrawer'] {
+html.dissatisfied-active.dissatisfied-twitter-hide-sidebar [data-testid='primaryColumn']~[data-testid='sidebarColumn'] {
 	display: none !important;
 }
 
-/* ============================================================================
- * Active State: Hide Main Header (but NOT the sticky tab bar)
- * ============================================================================ */
+html.dissatisfied-active.dissatisfied-twitter-hide-sidebar [data-testid='searchColumn'] {
+	display: none !important;
+}
 
-html.dissatisfied-active header {
+html.dissatisfied-active.dissatisfied-twitter-hide-sidebar [data-testid='sidebarColumn']:not(:first-of-type) {
+	display: none !important;
+}
+
+html.dissatisfied-active.dissatisfied-twitter-hide-chat [data-testid='chat-drawer-root'] {
+	display: none !important;
+}
+
+html.dissatisfied-active.dissatisfied-twitter-hide-grok [data-testid='GrokDrawer'] {
+	display: none !important;
+}
+
+/* Header hides with center timeline (tied together) */
+html.dissatisfied-active.dissatisfied-twitter-hide-header header {
 	display: none !important;
 }
 
@@ -41,25 +52,59 @@ html.dissatisfied-active header {
  * Active State: Center Primary Column
  * ============================================================================ */
 
-/* Container holding primaryColumn and sidebarColumn */
-html.dissatisfied-active div:has([data-testid='primaryColumn']) {
+html.dissatisfied-active.dissatisfied-twitter-center-timeline div:has([data-testid='primaryColumn']) {
 	position: relative !important;
 	width: 95vw !important;
 	display: flex !important;
 	justify-content: center !important;
 }
 
-/* Primary column itself */
-html.dissatisfied-active [data-testid='primaryColumn'] {
+html.dissatisfied-active.dissatisfied-twitter-center-timeline [data-testid='primaryColumn'] {
 	width: var(--twitter-width, 80%) !important;
 	max-width: var(--twitter-width, 80%) !important;
 	position: absolute !important;
+	.r-1ye8kvj {
+		width: 100% !important;
+	}
 }
 
-html.dissatisfied-active [data-testid='primaryColumn'] div {
-	max-width: 100% !important;
+html.dissatisfied-active:not(.dissatisfied-twitter-center-timeline) [data-testid='primaryColumn'] {
+	width: var(--twitter-width, 80%) !important;
+	max-width: var(--twitter-width, 80%) !important;
+	margin-left: 0 !important;
+	margin-right: auto !important;
 }
 
-html.dissatisfied-active article {
+html.dissatisfied-active.dissatisfied-twitter-center-timeline article {
 	width: 100% !important;
+}
+
+/* ============================================================================
+ * Font size + tweet scale (custom font only)
+ * ============================================================================ */
+
+html.dissatisfied-active.dissatisfied-twitter-custom-font [data-testid='primaryColumn'] [data-testid='tweetText'],
+html.dissatisfied-active.dissatisfied-twitter-custom-font [data-testid='primaryColumn'] [data-testid='tweetText'] span,
+html.dissatisfied-active.dissatisfied-twitter-custom-font [data-testid='primaryColumn'] article div[lang] {
+	font-size: var(--twitter-font-size, 15px) !important;
+}
+
+html.dissatisfied-active.dissatisfied-twitter-custom-font [data-testid='primaryColumn'] article [data-testid='User-Name'],
+html.dissatisfied-active.dissatisfied-twitter-custom-font [data-testid='primaryColumn'] article [data-testid='User-Name'] *,
+html.dissatisfied-active.dissatisfied-twitter-custom-font [data-testid='primaryColumn'] article [data-testid='User-Name']~* *,
+html.dissatisfied-active.dissatisfied-twitter-custom-font [data-testid='primaryColumn'] article [role='group'] span {
+	font-size: var(--twitter-font-size, 15px) !important;
+}
+
+html.dissatisfied-active.dissatisfied-twitter-custom-font [data-testid='primaryColumn'] [data-testid='icon-verified'],
+html.dissatisfied-active.dissatisfied-twitter-custom-font [data-testid='primaryColumn'] article button svg,
+html.dissatisfied-active.dissatisfied-twitter-custom-font [data-testid='primaryColumn'] article [role='group'] svg,
+html.dissatisfied-active.dissatisfied-twitter-custom-font [data-testid='primaryColumn'] article [data-testid='tweetText'] img.r-4qtqp9,
+html.dissatisfied-active.dissatisfied-twitter-custom-font [data-testid='primaryColumn'] article [data-testid='User-Name'] img.r-4qtqp9 {
+	transform: scale(var(--twitter-icon-scale, 1));
+	transform-origin: center;
+}
+
+html.dissatisfied-active.dissatisfied-twitter-custom-font [data-testid='primaryColumn'] article [data-testid='Tweet-User-Avatar'] {
+	transform: none !important;
 }

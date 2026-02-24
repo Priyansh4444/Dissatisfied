@@ -1,19 +1,10 @@
-// Storage keys - must match options.js
-const STORAGE_KEYS = {
-	YOUTUBE_PERSISTENCE_MODE: 'youtube_persistence_mode',
-	TWITTER_PERSISTENCE_MODE: 'twitter_persistence_mode',
-	YOUTUBE_STATE: 'youtube_state',
-	TWITTER_STATE: 'twitter_state',
-	YOUTUBE_SESSIONS: 'youtube_sessions',
-	TWITTER_WIDTH: 'twitter_width',
-}
-
-// Default values
-const DEFAULTS = {
-	YOUTUBE_PERSISTENCE_MODE: 'tab',
-	TWITTER_PERSISTENCE_MODE: 'tab',
-	TWITTER_WIDTH: 80,
-}
+import {
+	DEFAULTS,
+	STORAGE_KEYS,
+	isTwitterUrl,
+	isYouTubeUrl,
+	type TwitterFocusControls,
+} from './shared/extension-settings.ts'
 
 // Per-tab state tracking (for per-tab mode)
 interface TabState {
@@ -36,8 +27,12 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
 			[STORAGE_KEYS.TWITTER_PERSISTENCE_MODE]:
 				DEFAULTS.TWITTER_PERSISTENCE_MODE,
 			[STORAGE_KEYS.TWITTER_WIDTH]: DEFAULTS.TWITTER_WIDTH,
-			[STORAGE_KEYS.YOUTUBE_STATE]: { enabled: false },
-			[STORAGE_KEYS.TWITTER_STATE]: { enabled: false },
+			[STORAGE_KEYS.TWITTER_FONT_SIZE]: DEFAULTS.TWITTER_FONT_SIZE,
+			[STORAGE_KEYS.TWITTER_USE_DEFAULT_FONT]:
+				DEFAULTS.TWITTER_USE_DEFAULT_FONT,
+			[STORAGE_KEYS.TWITTER_FOCUS_CONTROLS]: DEFAULTS.TWITTER_FOCUS_CONTROLS,
+			[STORAGE_KEYS.YOUTUBE_STATE]: DEFAULTS.YOUTUBE_STATE,
+			[STORAGE_KEYS.TWITTER_STATE]: DEFAULTS.TWITTER_STATE,
 		})
 
 		await chrome.runtime.openOptionsPage()
@@ -61,36 +56,6 @@ chrome.runtime.onStartup.addListener(async () => {
 		})
 	}
 })
-
-// Helper functions
-const isYouTubeUrl = (url: string) => {
-	try {
-		const u = new URL(url)
-		const host = u.hostname
-		return (
-			host === 'www.youtube.com' ||
-			host === 'm.youtube.com' ||
-			host === 'youtu.be'
-		)
-	} catch {
-		return false
-	}
-}
-
-const isTwitterUrl = (url: string) => {
-	try {
-		const u = new URL(url)
-		const host = u.hostname
-		return (
-			host === 'twitter.com' ||
-			host === 'www.twitter.com' ||
-			host === 'x.com' ||
-			host === 'www.x.com'
-		)
-	} catch {
-		return false
-	}
-}
 
 async function getStoredState(key: string): Promise<any> {
 	const result = await chrome.storage.local.get(key)
@@ -201,29 +166,104 @@ async function removeYouTubeStyles(tabId: number): Promise<void> {
 	}
 }
 
+async function sendTwitterContentAction(
+	tabId: number,
+	action: 'apply-twitter-styles' | 'remove-twitter-styles',
+): Promise<boolean> {
+	try {
+		await chrome.tabs.sendMessage(tabId, { action })
+		return true
+	} catch {
+		return false
+	}
+}
+
 // Apply Twitter styles to a tab
 async function applyTwitterStyles(tabId: number): Promise<void> {
 	try {
-		// First, inject CSS variable for Twitter width
-		const twitterWidth = await getStoredState(STORAGE_KEYS.TWITTER_WIDTH)
-		const width = twitterWidth || DEFAULTS.TWITTER_WIDTH
+		const didContentScriptHandleIt = await sendTwitterContentAction(
+			tabId,
+			'apply-twitter-styles',
+		)
 
-		await chrome.scripting.executeScript({
-			target: { tabId },
-			func: (widthValue: number) => {
-				document.documentElement.style.setProperty(
-					'--twitter-width',
-					`${widthValue}%`,
-				)
-			},
-			args: [width],
-		})
+		if (!didContentScriptHandleIt) {
+			const storedWidth = await getStoredState(STORAGE_KEYS.TWITTER_WIDTH)
+			const twitterWidth = storedWidth || DEFAULTS.TWITTER_WIDTH
+			const storedFontSize = await getStoredState(
+				STORAGE_KEYS.TWITTER_FONT_SIZE,
+			)
+			const twitterFontSize = storedFontSize || DEFAULTS.TWITTER_FONT_SIZE
+			const useDefaultFont =
+				(await getStoredState(STORAGE_KEYS.TWITTER_USE_DEFAULT_FONT)) !== false
+			const storedControls = await getStoredState(
+				STORAGE_KEYS.TWITTER_FOCUS_CONTROLS,
+			)
+			const rawControls = storedControls || DEFAULTS.TWITTER_FOCUS_CONTROLS
+			const centerTimeline = Boolean(rawControls.centerTimeline)
+			const twitterControls = {
+				...rawControls,
+				hideHeader: centerTimeline,
+				centerTimeline,
+			}
 
-		// Then inject the CSS file
-		await chrome.scripting.insertCSS({
-			target: { tabId },
-			files: ['styles/twitter.css'],
-		})
+			await chrome.scripting.executeScript({
+				target: { tabId },
+				func: (
+					widthValue: number,
+					fontSizeValue: number,
+					useDefault: boolean,
+					controls: TwitterFocusControls,
+				) => {
+					const root = document.documentElement
+					root.classList.add('dissatisfied-active')
+					root.style.setProperty('--twitter-width', `${widthValue}%`)
+					if (!useDefault) {
+						root.classList.add('dissatisfied-twitter-custom-font')
+						root.style.setProperty('--twitter-font-size', `${fontSizeValue}px`)
+						root.style.setProperty(
+							'--twitter-icon-scale',
+							String(1 + (fontSizeValue / 15 - 1) * 0.5),
+						)
+					} else {
+						root.classList.remove('dissatisfied-twitter-custom-font')
+						root.style.removeProperty('--twitter-font-size')
+						root.style.removeProperty('--twitter-icon-scale')
+					}
+					root.classList.toggle(
+						'dissatisfied-twitter-hide-sidebar',
+						Boolean(controls.hideSidebarColumn),
+					)
+					root.classList.toggle(
+						'dissatisfied-twitter-hide-chat',
+						Boolean(controls.hideChatDrawer),
+					)
+					root.classList.toggle(
+						'dissatisfied-twitter-hide-grok',
+						Boolean(controls.hideGrokDrawer),
+					)
+					root.classList.toggle(
+						'dissatisfied-twitter-hide-header',
+						Boolean(controls.hideHeader),
+					)
+					root.classList.toggle(
+						'dissatisfied-twitter-center-timeline',
+						Boolean(controls.centerTimeline),
+					)
+				},
+				args: [
+					twitterWidth,
+					twitterFontSize,
+					useDefaultFont,
+					twitterControls,
+				],
+			})
+
+			await chrome.scripting.insertCSS({
+				target: { tabId },
+				files: ['styles/twitter.css'],
+			})
+		}
+
 		await chrome.action.setBadgeText({ tabId, text: 'ON' })
 	} catch (error) {
 		console.error('Error applying Twitter styles:', error)
@@ -233,10 +273,35 @@ async function applyTwitterStyles(tabId: number): Promise<void> {
 // Remove Twitter styles from a tab
 async function removeTwitterStyles(tabId: number): Promise<void> {
 	try {
-		await chrome.scripting.removeCSS({
-			target: { tabId },
-			files: ['styles/twitter.css'],
-		})
+		const didContentScriptHandleIt = await sendTwitterContentAction(
+			tabId,
+			'remove-twitter-styles',
+		)
+
+		if (!didContentScriptHandleIt) {
+			await chrome.scripting.removeCSS({
+				target: { tabId },
+				files: ['styles/twitter.css'],
+			})
+			await chrome.scripting.executeScript({
+				target: { tabId },
+				func: () => {
+					const root = document.documentElement
+					root.classList.remove(
+						'dissatisfied-active',
+						'dissatisfied-twitter-custom-font',
+						'dissatisfied-twitter-hide-sidebar',
+						'dissatisfied-twitter-hide-chat',
+						'dissatisfied-twitter-hide-grok',
+						'dissatisfied-twitter-hide-header',
+						'dissatisfied-twitter-center-timeline',
+					)
+					root.style.removeProperty('--twitter-width')
+					root.style.removeProperty('--twitter-font-size')
+					root.style.removeProperty('--twitter-icon-scale')
+				},
+			})
+		}
 		await chrome.action.setBadgeText({ tabId, text: 'OFF' })
 	} catch (error) {
 		console.error('Error removing Twitter styles:', error)

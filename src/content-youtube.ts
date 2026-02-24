@@ -1,8 +1,11 @@
-// BroadcastChannel for cross-tab communication
-const channel = new BroadcastChannel('dissatisfied-youtube')
+import { STORAGE_KEYS, isYouTubeHost } from './shared/extension-settings.ts'
+import {
+	isEditableTarget,
+	isYouTubeBackquoteShortcut,
+} from './shared/shortcut-utils.ts'
 
-// Storage key
-const STORAGE_KEY = 'youtube_state'
+const channel = new BroadcastChannel('dissatisfied-youtube')
+const STORAGE_KEY = STORAGE_KEYS.YOUTUBE_STATE
 
 // Check if we're on a YouTube video page (watch/embed or youtu.be links). Excludes home and shorts
 const isYouTubePage = () => {
@@ -14,8 +17,8 @@ const isYouTubePage = () => {
 		return path && path !== '/' && path.length > 1
 	}
 
-	// Only run on www.youtube.com and m.youtube.com
-	if (host === 'www.youtube.com' || host === 'm.youtube.com') {
+	// Only run on standard YouTube hosts.
+	if (isYouTubeHost(host)) {
 		// Watch page with v= param
 		if (path === '/watch') {
 			const params = new URLSearchParams(window.location.search)
@@ -36,19 +39,6 @@ const isYouTubePage = () => {
 
 // Track if we enabled theater mode
 let weEnabledTheater = false
-
-const isEditableTarget = (target: EventTarget | null): boolean => {
-	if (!(target instanceof HTMLElement)) {
-		return false
-	}
-
-	return (
-		target.isContentEditable ||
-		target.tagName === 'INPUT' ||
-		target.tagName === 'TEXTAREA' ||
-		target.tagName === 'SELECT'
-	)
-}
 
 // Apply YouTube styles
 function applyStyles() {
@@ -195,9 +185,7 @@ document.addEventListener(
 			return
 		}
 
-		const isBackquote =
-			(event.key === '`' || event.code === 'Backquote') && !event.shiftKey
-		if (!isBackquote) {
+		if (!isYouTubeBackquoteShortcut(event)) {
 			return
 		}
 
