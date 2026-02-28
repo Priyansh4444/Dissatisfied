@@ -10,6 +10,7 @@ import {
 	isTwitterOptionShiftXShortcut,
 	isTwitterToggleShortcut,
 	requestBackgroundToggle,
+	isFirefoxLike,
 } from './shared/shortcut-utils.ts'
 
 type Result<T, E = Error> = { ok: true; value: T } | { ok: false; error: E }
@@ -454,7 +455,7 @@ document.addEventListener(
 		const isOptionShiftX = isTwitterOptionShiftXShortcut(event)
 		if (!isControlB && !isOptionShiftX) return
 
-		// Always consume the shortcut so browser defaults (like Firefox bookmarks) don't fire.
+		// Always consume the shortcut so browser defaults don't fire.
 		event.preventDefault()
 		event.stopPropagation()
 

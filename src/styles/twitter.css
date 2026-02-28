@@ -63,7 +63,9 @@ html.dissatisfied-active.dissatisfied-twitter-center-timeline [data-testid='prim
 	width: var(--twitter-width, 80%) !important;
 	max-width: var(--twitter-width, 80%) !important;
 	position: absolute !important;
+
 	.r-1ye8kvj {
+		max-width: none !important;
 		width: 100% !important;
 	}
 }

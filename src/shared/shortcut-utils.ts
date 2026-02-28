@@ -6,6 +6,12 @@ export const isEditableTarget = (target: EventTarget | null): boolean => {
 	return target.isContentEditable || isTextInput || isSelect
 }
 
+export const isFirefoxLike = (): boolean => {
+	if (typeof navigator === 'undefined') return false
+	const ua = navigator.userAgent.toLowerCase()
+	return ua.includes('firefox')
+}
+
 export const isYouTubeBackquoteShortcut = (event: KeyboardEvent): boolean => {
 	const isBackquoteKey = event.key === '`' || event.code === 'Backquote'
 	const hasNoModifiers =

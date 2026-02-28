@@ -2,6 +2,7 @@ import { STORAGE_KEYS, isYouTubeHost } from './shared/extension-settings.ts'
 import {
 	isEditableTarget,
 	isYouTubeBackquoteShortcut,
+	isFirefoxLike,
 } from './shared/shortcut-utils.ts'
 
 const channel = new BroadcastChannel('dissatisfied-youtube')
