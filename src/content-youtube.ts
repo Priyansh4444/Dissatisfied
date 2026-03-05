@@ -1,8 +1,12 @@
-import { STORAGE_KEYS, isYouTubeHost } from './shared/extension-settings.ts'
+import {
+	STORAGE_KEYS,
+	type ToggleState,
+	isYouTubeHost,
+} from './shared/extension-settings.ts'
 import {
 	isEditableTarget,
 	isYouTubeBackquoteShortcut,
-	isFirefoxLike,
+	requestBackgroundToggle,
 } from './shared/shortcut-utils.ts'
 
 const channel = new BroadcastChannel('dissatisfied-youtube')
@@ -112,7 +116,7 @@ async function checkInitialState() {
 
 	try {
 		const result = await chrome.storage.local.get(STORAGE_KEY)
-		const state = result[STORAGE_KEY]
+		const state = result[STORAGE_KEY] as ToggleState | undefined
 
 		if (state?.enabled) {
 			applyStyles()
@@ -147,7 +151,7 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 		return
 	}
 
-	const newState = changes[STORAGE_KEY].newValue
+	const newState = changes[STORAGE_KEY].newValue as ToggleState | undefined
 
 	if (newState?.enabled) {
 		applyStyles()
@@ -192,7 +196,9 @@ document.addEventListener(
 
 		event.preventDefault()
 		event.stopPropagation()
-		toggleStyles()
+		void requestBackgroundToggle('toggle-youtube-style', () => {
+			toggleStyles()
+		})
 	},
 	true,
 )

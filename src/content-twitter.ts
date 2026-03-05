@@ -10,7 +10,6 @@ import {
 	isTwitterOptionShiftXShortcut,
 	isTwitterToggleShortcut,
 	requestBackgroundToggle,
-	isFirefoxLike,
 } from './shared/shortcut-utils.ts'
 
 type Result<T, E = Error> = { ok: true; value: T } | { ok: false; error: E }

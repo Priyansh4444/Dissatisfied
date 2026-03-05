@@ -56,6 +56,7 @@ async function buildExtension(target: BuildTarget = 'chrome') {
 		entrypoints: [
 			join('src', 'content-youtube.ts'),
 			join('src', 'content-twitter.ts'),
+			join('src', 'content-excalidraw.ts'),
 		],
 		outdir,
 		target: 'browser',
@@ -65,7 +66,11 @@ async function buildExtension(target: BuildTarget = 'chrome') {
 
 	// Safari: prepend webextension-polyfill to content scripts so chrome.* works
 	if (target === 'safari') {
-		for (const name of ['content-youtube.js', 'content-twitter.js']) {
+		for (const name of [
+			'content-youtube.js',
+			'content-twitter.js',
+			'content-excalidraw.js',
+		]) {
 			const path = join(outdir, name)
 			const content = await Bun.file(path).text()
 			await Bun.write(path, `${chromePolyfill}\n\n${content}`)

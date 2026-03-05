@@ -250,12 +250,7 @@ async function applyTwitterStyles(tabId: number): Promise<void> {
 						Boolean(controls.centerTimeline),
 					)
 				},
-				args: [
-					twitterWidth,
-					twitterFontSize,
-					useDefaultFont,
-					twitterControls,
-				],
+				args: [twitterWidth, twitterFontSize, useDefaultFont, twitterControls],
 			})
 
 			await chrome.scripting.insertCSS({
@@ -353,14 +348,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 	}
 })
 
-// YouTube toggle command
-chrome.commands.onCommand.addListener(async (command) => {
-	if (command !== 'toggle-youtube-style') {
-		return
-	}
-
-	const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
-
+async function toggleYoutubeFromTab(tab: chrome.tabs.Tab | undefined) {
 	if (!tab || typeof tab.id !== 'number' || typeof tab.url !== 'string') {
 		return
 	}
@@ -403,16 +391,9 @@ chrome.commands.onCommand.addListener(async (command) => {
 			await removeYouTubeStyles(tab.id)
 		}
 	}
-})
+}
 
-// Twitter toggle command
-chrome.commands.onCommand.addListener(async (command) => {
-	if (command !== 'toggle-twitter-style') {
-		return
-	}
-
-	const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
-
+async function toggleTwitterFromTab(tab: chrome.tabs.Tab | undefined) {
 	if (!tab || typeof tab.id !== 'number' || typeof tab.url !== 'string') {
 		return
 	}
@@ -455,6 +436,26 @@ chrome.commands.onCommand.addListener(async (command) => {
 			await removeTwitterStyles(tab.id)
 		}
 	}
+}
+
+// YouTube toggle command
+chrome.commands.onCommand.addListener(async (command) => {
+	if (command !== 'toggle-youtube-style') {
+		return
+	}
+
+	const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
+	await toggleYoutubeFromTab(tab)
+})
+
+// Twitter toggle command
+chrome.commands.onCommand.addListener(async (command) => {
+	if (command !== 'toggle-twitter-style') {
+		return
+	}
+
+	const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
+	await toggleTwitterFromTab(tab)
 })
 
 // Clean up when tabs are closed
@@ -467,6 +468,27 @@ chrome.tabs.onRemoved.addListener(async (tabId) => {
 		theaterSessions.delete(tabId)
 		await saveTheaterSessions()
 	}
+})
+
+// Handle toggle messages from content scripts (keyboard shortcuts)
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+	if (message?.action === 'toggle-youtube-style') {
+		void (async () => {
+			await toggleYoutubeFromTab(sender.tab)
+			sendResponse({ success: true })
+		})()
+		return true
+	}
+
+	if (message?.action === 'toggle-twitter-style') {
+		void (async () => {
+			await toggleTwitterFromTab(sender.tab)
+			sendResponse({ success: true })
+		})()
+		return true
+	}
+
+	return false
 })
 
 // Update badge when tab becomes active

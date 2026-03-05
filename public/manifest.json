@@ -3,7 +3,7 @@
 	"manifest_version": 3,
 	"name": "Dissatisfied",
 	"description": "Get rid of parts of UI, when focussing on content.",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"author": "Pronsh",
 	"icons": {
 		"16": "icon16.png",
@@ -17,7 +17,8 @@
 		"https://twitter.com/*",
 		"https://www.twitter.com/*",
 		"https://x.com/*",
-		"https://www.x.com/*"
+		"https://www.x.com/*",
+		"https://excalidraw.com/*"
 	],
 	"background": {
 		"service_worker": "background.js"
@@ -65,11 +66,20 @@
 			],
 			"js": ["content-twitter.js"],
 			"run_at": "document_end"
+		},
+		{
+			"matches": ["*://excalidraw.com/*"],
+			"js": ["content-excalidraw.js"],
+			"run_at": "document_end"
 		}
 	],
 	"web_accessible_resources": [
 		{
-			"resources": ["styles/youtube.css", "styles/twitter.css"],
+			"resources": [
+				"styles/youtube.css",
+				"styles/twitter.css",
+				"styles/excalidraw.css"
+			],
 			"matches": [
 				"*://www.youtube.com/*",
 				"*://m.youtube.com/*",
@@ -77,7 +87,8 @@
 				"*://twitter.com/*",
 				"*://www.twitter.com/*",
 				"*://x.com/*",
-				"*://www.x.com/*"
+				"*://www.x.com/*",
+				"*://excalidraw.com/*"
 			]
 		}
 	]
