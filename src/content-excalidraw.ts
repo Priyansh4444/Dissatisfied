@@ -38,7 +38,8 @@ const toggle = (): void => {
 const isControlB = (event: KeyboardEvent): boolean => {
 	const normalizedKey = event.key.toLowerCase()
 	const isKeyB = event.code === 'KeyB' || normalizedKey === 'b'
-	return isKeyB && event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey
+	const hasCtrlOrCmd = event.ctrlKey || event.metaKey
+	return isKeyB && hasCtrlOrCmd && !event.shiftKey && !event.altKey
 }
 
 document.addEventListener(

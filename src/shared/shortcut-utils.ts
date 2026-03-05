@@ -16,7 +16,8 @@ export const isYouTubeBackquoteShortcut = (event: KeyboardEvent): boolean => {
 export const isTwitterControlBShortcut = (event: KeyboardEvent): boolean => {
 	const normalizedKey = event.key.toLowerCase()
 	const isKeyB = event.code === 'KeyB' || normalizedKey === 'b'
-	return isKeyB && event.ctrlKey && !event.altKey && !event.metaKey
+	const hasCtrlOrCmd = event.ctrlKey || event.metaKey
+	return isKeyB && hasCtrlOrCmd && !event.altKey
 }
 
 export const isTwitterOptionShiftXShortcut = (event: KeyboardEvent): boolean => {
