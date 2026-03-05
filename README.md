@@ -4,7 +4,7 @@
 
 Get rid of parts of UI when focusing on content.
 
-A browser extension that provides keyboard shortcuts to toggle focus mode on YouTube and Twitter/X for a more immersive experience.
+A browser extension that provides keyboard shortcuts to toggle focus mode on YouTube, Twitter/X, and Excalidraw for a more immersive experience.
 
 **🔒 Privacy First:** Zero data collection. Everything runs locally on your device.
 
@@ -18,10 +18,13 @@ A browser extension that provides keyboard shortcuts to toggle focus mode on You
   - Full-width video player
   - Scrollable page to access comments
 
-- **Twitter/X Focus Mode** (Ctrl+Shift+X / Cmd+Shift+X on Mac, or **Ctrl+B** on the page)
+- **Twitter/X Focus Mode** (Ctrl+Shift+X / Cmd+Shift+X on Mac, or **Ctrl/Cmd+B** on the page)
   - Hides sidebars and trending topics
   - Centers and widens the main timeline
   - Removes header distractions
+
+- **Excalidraw Focus Mode** (**Ctrl/Cmd+B** on the page)
+  - Hides the UI wrapper (`.layer-ui__wrapper`) for a cleaner canvas
 
 ### Persistence Modes
 
@@ -107,7 +110,8 @@ bun run build:all
 │   ├── background.safari.ts  # Safari background script (MV2)
 │   ├── styles/
 │   │   ├── youtube.css       # YouTube styling
-│   │   └── twitter.css       # Twitter/X styling
+│   │   ├── twitter.css       # Twitter/X styling
+│   │   └── excalidraw.css    # Excalidraw styling
 │   └── ui/
 │       ├── global.css        # Global UI styles
 │       └── options/
@@ -143,7 +147,7 @@ Open the options page by clicking the extension icon or right-clicking it and se
 
 ### Customizing Shortcuts
 
-You can toggle focus mode from the page: press **`** (backtick) on YouTube, or **Ctrl+B** on Twitter/X. You can also use the extension shortcuts below (e.g. Ctrl+Shift+Y / Ctrl+Shift+X).
+You can toggle focus mode from the page: press **`** (backtick) on YouTube, **Ctrl/Cmd+B** or **Option+Shift+X** on Twitter/X, and **Ctrl/Cmd+B** on Excalidraw. You can also use the extension shortcuts below (e.g. Ctrl+Shift+Y / Ctrl+Shift+X).
 
 **Chrome/Edge/Opera**
 
@@ -172,7 +176,7 @@ You can toggle focus mode from the page: press **`** (backtick) on YouTube, or *
 - **`storage`**: Save your preference settings locally on your device
 - **`activeTab`**: Access the current tab to inject focus mode styles
 - **`scripting`**: Inject CSS and toggle YouTube's theater mode
-- **`host_permissions`**: Only YouTube and Twitter/X domains
+- **`host_permissions`**: Only YouTube, Twitter/X, and Excalidraw domains
 
 All data stays on your device. No external requests are made.
 
