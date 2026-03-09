@@ -96,12 +96,13 @@ async function buildExtension(target: BuildTarget = 'chrome') {
 	await $`mkdir -p ${outdir}/ui/options`
 	await $`cp -r src/ui/options/* ${outdir}/ui/options`.nothrow().quiet()
 
-	// Prepend polyfill to options.js for cross-browser compatibility
-	const optionsJsPath = join(outdir, 'ui', 'options', 'options.js')
-	if (await Bun.file(optionsJsPath).exists()) {
-		const optionsJsContent = await Bun.file(optionsJsPath).text()
-		await Bun.write(optionsJsPath, `${chromePolyfill}\n\n${optionsJsContent}`)
-	}
+	// copy popup UI files preserving directory structure
+	await $`mkdir -p ${outdir}/ui/popup`
+	await $`cp -r src/ui/popup/* ${outdir}/ui/popup`.nothrow().quiet()
+
+	// copy shared UI modules preserving directory structure
+	await $`mkdir -p ${outdir}/ui/shared`
+	await $`cp -r src/ui/shared/* ${outdir}/ui/shared`.nothrow().quiet()
 
 	// copy global CSS if it exists
 	await $`cp src/ui/global.css ${outdir}/ui/`.nothrow().quiet()

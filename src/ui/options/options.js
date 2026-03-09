@@ -1,30 +1,12 @@
-const STORAGE_KEYS = {
-	YOUTUBE_PERSISTENCE_MODE: 'youtube_persistence_mode',
-	TWITTER_PERSISTENCE_MODE: 'twitter_persistence_mode',
-	TWITTER_WIDTH: 'twitter_width',
-	TWITTER_FONT_SIZE: 'twitter_font_size',
-	TWITTER_USE_DEFAULT_FONT: 'twitter_use_default_font',
-	TWITTER_FOCUS_CONTROLS: 'twitter_focus_controls',
-}
+import {
+	DEFAULTS,
+	STORAGE_KEYS,
+	UI_KEYS,
+	detectSiteNameFromUrl,
+	sanitizeNumber,
+	sanitizeTwitterControls,
+} from '../shared/settings-shared.js'
 
-const DEFAULT_TWITTER_CONTROLS = Object.freeze({
-	hideSidebarColumn: true,
-	hideChatDrawer: true,
-	hideGrokDrawer: true,
-	hideHeader: true,
-	centerTimeline: true,
-})
-
-const DEFAULTS = Object.freeze({
-	YOUTUBE_PERSISTENCE_MODE: 'tab',
-	TWITTER_PERSISTENCE_MODE: 'tab',
-	TWITTER_WIDTH: 80,
-	TWITTER_FONT_SIZE: 15,
-	TWITTER_USE_DEFAULT_FONT: true,
-	TWITTER_FOCUS_CONTROLS: DEFAULT_TWITTER_CONTROLS,
-})
-
-const TWITTER_CONTROL_KEYS = Object.keys(DEFAULT_TWITTER_CONTROLS)
 const sliderSaveTimeouts = new Map()
 
 const dom = {
@@ -45,6 +27,7 @@ const dom = {
 document.addEventListener('DOMContentLoaded', async () => {
 	cacheDom()
 	bindSettingsEvents()
+	await setInitialActiveSiteForCurrentTab()
 	await loadSettings()
 	await initializeShortcutsSection()
 })
@@ -111,7 +94,6 @@ function bindSettingsEvents() {
 			handleTwitterUseDefaultFontChange,
 		)
 	}
-
 }
 
 function initializeSiteTabs() {
@@ -136,6 +118,50 @@ function setActiveSite(siteName) {
 	for (const panel of dom.sitePanels) {
 		const isActive = panel.dataset.sitePanel === siteName
 		panel.classList.toggle('is-active', isActive)
+	}
+}
+
+async function setInitialActiveSiteForCurrentTab() {
+	try {
+		// 1) Try detecting from the currently-active tab URL (best-effort).
+		if (chrome.tabs?.query) {
+			const [tab] = await chrome.tabs.query({
+				active: true,
+				currentWindow: true,
+			})
+			const siteFromUrl = detectSiteNameFromUrl(tab?.url)
+			if (siteFromUrl !== 'unknown') {
+				setActiveSite(siteFromUrl)
+				return
+			}
+		}
+
+		// 2) If opened from the popup, the active tab may now be the options page itself.
+		//    Fall back to a short-lived hint stored by the popup.
+		if (chrome.storage?.local?.get) {
+			const stored = await chrome.storage.local.get([
+				UI_KEYS.LAST_OPEN_SITE,
+				UI_KEYS.LAST_OPEN_SITE_AT,
+			])
+			const site = stored[UI_KEYS.LAST_OPEN_SITE]
+			const at = stored[UI_KEYS.LAST_OPEN_SITE_AT]
+
+			const isValidSite =
+				site === 'youtube' || site === 'twitter' || site === 'excalidraw'
+			const isFresh = typeof at === 'number' && Date.now() - at < 15_000
+
+			if (isValidSite && isFresh) {
+				setActiveSite(site)
+				if (chrome.storage?.local?.remove) {
+					await chrome.storage.local.remove([
+						UI_KEYS.LAST_OPEN_SITE,
+						UI_KEYS.LAST_OPEN_SITE_AT,
+					])
+				}
+			}
+		}
+	} catch (error) {
+		console.warn('Could not determine active site for options page:', error)
 	}
 }
 
@@ -182,26 +208,6 @@ async function loadSettings() {
 	}
 }
 
-function sanitizeNumber(value, fallback) {
-	const numericValue = Number(value)
-	return Number.isFinite(numericValue) ? numericValue : fallback
-}
-
-function sanitizeTwitterControls(rawValue) {
-	const normalized = { ...DEFAULT_TWITTER_CONTROLS }
-	if (!rawValue || typeof rawValue !== 'object') {
-		return normalized
-	}
-
-	for (const key of TWITTER_CONTROL_KEYS) {
-		if (typeof rawValue[key] === 'boolean') {
-			normalized[key] = rawValue[key]
-		}
-	}
-
-	return normalized
-}
-
 function applyRadioSelection(prefix, value) {
 	const modeInput = document.getElementById(`${prefix}-${value}`)
 	if (modeInput) {
@@ -241,7 +247,6 @@ function applyTwitterUseDefaultFont(useDefault) {
 	}
 }
 
-
 function applyTwitterControls(controls) {
 	for (const input of dom.twitterControlInputs) {
 		const controlKey = input.dataset.controlKey
@@ -251,7 +256,7 @@ function applyTwitterControls(controls) {
 }
 
 function getTwitterControlsFromForm() {
-	const controls = { ...DEFAULT_TWITTER_CONTROLS }
+	const controls = { ...DEFAULTS.TWITTER_FOCUS_CONTROLS }
 	for (const input of dom.twitterControlInputs) {
 		const controlKey = input.dataset.controlKey
 		if (!controlKey || !(controlKey in controls)) continue
@@ -337,7 +342,6 @@ async function handleTwitterUseDefaultFontChange(event) {
 	applyTwitterUseDefaultFont(useDefault)
 	await saveSetting(STORAGE_KEYS.TWITTER_USE_DEFAULT_FONT, useDefault, 'Saved')
 }
-
 
 function queueSliderSave({ storageKey, value, successMessage }) {
 	cancelQueuedSliderSave(storageKey)
