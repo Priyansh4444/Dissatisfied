@@ -47,11 +47,6 @@ browser.runtime.onInstalled.addListener(
 	},
 )
 
-// Open options page on icon click
-browser.browserAction.onClicked.addListener(async () => {
-	await browser.runtime.openOptionsPage()
-})
-
 // Load theater sessions on startup
 browser.runtime.onStartup.addListener(async () => {
 	const stored = await getStoredState(STORAGE_KEYS.YOUTUBE_SESSIONS)

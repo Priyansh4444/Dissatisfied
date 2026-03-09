@@ -42,11 +42,6 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
 	await chrome.action.setBadgeText({ text: 'OFF' })
 })
 
-// Open options page on icon click
-chrome.action.onClicked.addListener(async () => {
-	await chrome.runtime.openOptionsPage()
-})
-
 // Load theater sessions on startup
 chrome.runtime.onStartup.addListener(async () => {
 	const stored = await getStoredState(STORAGE_KEYS.YOUTUBE_SESSIONS)
