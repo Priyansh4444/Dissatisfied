@@ -1,0 +1,21 @@
+:root {
+  color-scheme: dark;
+  --bg: #030306;
+  --bg-elevated: #0a0a10;
+  --text: rgba(255, 255, 255, 0.94);
+  --muted: rgba(255, 255, 255, 0.58);
+  --line: rgba(255, 255, 255, 0.1);
+  --accent: #5eb8ff;
+  --accent-soft: rgba(94, 184, 255, 0.12);
+  /* Primary CTA: warm neutral (not blue) */
+  --btn-primary-bg: #e8e4dc;
+  --btn-primary-fg: #12121a;
+  --btn-primary-border: rgba(255, 255, 255, 0.14);
+  --font-display: "Instrument Serif", ui-serif, Georgia, serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-hero: 0.85s;
+  --dur-reveal: 0.7s;
+  --dur-focus: 0.5s;
+}
