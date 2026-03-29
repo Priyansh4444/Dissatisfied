@@ -173,8 +173,7 @@ small,
   border-radius: 0;
   background: transparent;
   cursor: pointer;
-  transition:
-    background 0.2s var(--ease-smooth);
+  transition: background 0.2s var(--ease-smooth);
 }
 
 .radio-option:last-child,
