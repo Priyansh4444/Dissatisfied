@@ -39,9 +39,8 @@ async function buildExtension(target: BuildTarget = 'chrome') {
 		banner: `/* ${manifest.name}\n * Copyright (c) ${new Date().getFullYear()} ${manifest.author}\n */\n\n${chromePolyfill}`,
 	})
 
-	// Rename background script to ensure consistent naming across all builds
-	// Rename background script to ensure consistent naming across all builds
-	// Only needed for Safari which uses a different source file
+	// Rename background script to ensure consistent naming across all builds.
+	// Only needed for Safari which uses a different source file.
 	if (target === 'safari') {
 		const builtBackgroundFile = join(outdir, 'background.safari.js')
 		const targetBackgroundFile = join(outdir, 'background.js')
