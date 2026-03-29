@@ -10,7 +10,7 @@
 		"48": "icon48.png",
 		"128": "icon128.png"
 	},
-	"homepage_url": "https://example.com/me/myextension",
+	"homepage_url": "https://github.com/Priyansh4444/Dissatisfied",
 	"permissions": ["scripting", "storage", "tabs"],
 	"host_permissions": [
 		"https://www.youtube.com/*",

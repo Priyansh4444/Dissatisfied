@@ -1,0 +1,92 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { REPO_URL } from '../scripts/install-target';
+const title = 'About — Dissatisfied';
+const description =
+  'Why Dissatisfied exists, what it does on YouTube, Twitter/X, and Excalidraw, how settings and privacy work, and how to contribute.';
+---
+
+<BaseLayout title={title} description={description} currentPath="/about">
+  <article class="prose">
+    <h1>About Dissatisfied</h1>
+    <p class="meta">A small extension for a calmer web.</p>
+
+    <p>
+      Dissatisfied is a browser extension for people who want their attention back. It reduces visual noise on
+      <strong>YouTube</strong>, <strong>Twitter / X</strong>, and <strong>excalidraw.com</strong> so the main
+      content stays in focus—without changing which sites you use.
+    </p>
+
+    <h2>Who it’s for</h2>
+    <p>
+      If you’ve opened YouTube or X for one task and been pulled sideways by sidebars, drawers, and chrome,
+      Dissatisfied offers a <strong>cleaner mode</strong> when you toggle it on. It’s for anyone who wants a quieter
+      canvas while watching, reading, or drawing.
+    </p>
+
+    <h2>What it does (by site)</h2>
+    <ul>
+      <li>
+        <strong>YouTube</strong> — Injects focus-oriented CSS and can nudge theater-style layout where applicable.
+        Toggle state can follow the current tab only or all YouTube tabs, depending on your persistence setting.
+      </li>
+      <li>
+        <strong>Twitter / X</strong> — Hides optional UI (sidebars, drawers, etc.), with timeline width, font, and
+        layout controls you configure in options or the toolbar popup.
+      </li>
+      <li>
+        <strong>Excalidraw</strong> — Toggles a stylesheet that pairs with <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+
+        <kbd>B</kbd> on the page to hide or show UI chrome around the canvas.
+      </li>
+    </ul>
+
+    <h2>Shortcuts (as implemented in the extension)</h2>
+    <p>
+      <strong>On the page</strong> (when focus isn’t in an input): YouTube uses the <kbd>`</kbd> (backtick) key.
+      Twitter/X uses <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>B</kbd> or <kbd>Option</kbd>+<kbd>Shift</kbd>+
+      <kbd>X</kbd>. Excalidraw uses <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>B</kbd>. These match the content scripts in
+      the repository.
+    </p>
+    <p>
+      <strong>Extension commands</strong> (rebindable under the browser’s extension shortcut settings): Chrome’s
+      manifest suggests <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>Y</kbd> for YouTube and
+      <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>X</kbd> for Twitter/X; Firefox uses different defaults
+      (<kbd>Alt</kbd>+<kbd>Shift</kbd> combinations). Check your browser’s shortcuts page for what’s actually
+      bound on your system.
+    </p>
+
+    <h2>How settings work</h2>
+    <p>
+      Preferences are stored in the browser’s <strong>extension storage</strong> (e.g. <code>chrome.storage.local</code>
+      in Chromium)—on your device, associated with the extension. Use the <strong>toolbar popup</strong> for
+      quick, site-aware controls, or the <strong>full options page</strong> for every setting, including persistence
+      (per-tab vs global, where supported).
+    </p>
+
+    <h2>Privacy</h2>
+    <p>
+      The extension does not send your browsing or layout choices to us. For the legal wording and future changes,
+      read the <a href="/privacy">Privacy Policy</a>.
+    </p>
+
+    <h2>Philosophy</h2>
+    <p>
+      Large platforms optimize for engagement. Dissatisfied only <strong>peels back</strong> layers you don’t want
+      in the moment—it doesn’t try to replace the product or lecture you about how you use the web.
+    </p>
+
+    <h2>Open source & contributing</h2>
+    <p>
+      Source code lives on <a href={REPO_URL} target="_blank" rel="noreferrer">GitHub</a>. Useful contributions include bug
+      reports with a specific URL, small reproducible steps, or PRs that match existing patterns in the repo (content
+      scripts, background, UI).
+    </p>
+
+    <h2>Build targets</h2>
+    <p>
+      The project ships build scripts for Chromium-based browsers, Firefox, and Safari Web Extension packaging.
+      Feature parity and shortcut behavior can differ slightly by platform—see the repository README and manifests
+      under <code>public/</code>.
+    </p>
+  </article>
+</BaseLayout>

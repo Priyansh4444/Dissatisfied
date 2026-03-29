@@ -1,354 +1,388 @@
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap");
 
-* {
-	box-sizing: border-box;
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
+/* Aligned with marketing site (website/src/styles/tokens.css) */
 :root {
-	color-scheme: dark;
+  color-scheme: dark;
 
-	--bg: #000;
-	--surface: #050505;
+  --bg: #030306;
+  --bg-elevated: #0a0a10;
+  --surface: var(--bg-elevated);
 
-	--text: rgba(255, 255, 255, 0.92);
-	--muted: rgba(255, 255, 255, 0.62);
+  --text: rgba(255, 255, 255, 0.94);
+  --muted: rgba(255, 255, 255, 0.58);
 
-	--line: rgba(255, 255, 255, 0.14);
-	--line-soft: rgba(255, 255, 255, 0.08);
+  --line: rgba(255, 255, 255, 0.1);
+  --line-soft: rgba(255, 255, 255, 0.08);
 
-	--red: #ff2d2d;
-	--blue: #00a3ff;
+  --accent: #5eb8ff;
+  /* Legacy names used in options UI */
+  --blue: var(--accent);
+  --red: #ff5a5a;
+  --control-bg: rgba(255, 255, 255, 0.03);
+  --control-bg-hover: rgba(255, 255, 255, 0.06);
+  --control-border: var(--line-soft);
+  --control-border-strong: rgba(255, 255, 255, 0.16);
 
-	/* frame geometry */
-	--frame-pad: 16px;
-	--corner: 20px; /* size of the corner “caps” */
-	--corner-stroke: 1px;
-	--corner-extend: 14px; /* how far the corner lines extend outward */
-	--dash: 7px;
-	--gap: 6px;
+  --font-display: "Instrument Serif", ui-serif, Georgia, serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+  --frame-pad: 20px;
 }
 
 html,
 body {
-	height: 100%;
+  height: 100%;
 }
 
 body {
-	margin: 0;
-	padding: 20px;
+  margin: 0;
+  min-height: 100%;
+  padding: clamp(16px, 4vw, 28px);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
 
-	font-family:
-		ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
-		'Courier New', monospace;
-	font-size: 13px;
-	line-height: 1.55;
-	color: var(--text);
+  background:
+    radial-gradient(ellipse 120% 80% at 50% -30%, rgba(94, 184, 255, 0.14), transparent 55%),
+    radial-gradient(ellipse 80% 50% at 100% 50%, rgba(255, 80, 80, 0.06), transparent 45%),
+    radial-gradient(ellipse 60% 40% at 0% 80%, rgba(94, 184, 255, 0.05), transparent 40%), var(--bg);
 
-	/* subtle grid + tiny glows (kept) */
-	background:
-		linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-		linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-		radial-gradient(
-			700px 320px at 12% 16%,
-			rgba(255, 45, 45, 0.12),
-			transparent 55%
-		),
-		radial-gradient(
-			700px 320px at 88% 12%,
-			rgba(0, 163, 255, 0.12),
-			transparent 55%
-		),
-		linear-gradient(180deg, #050505 0%, #000 100%);
-	background-size:
-		48px 48px,
-		48px 48px,
-		auto,
-		auto,
-		auto;
-	background-attachment: fixed;
-
-	/* responsive centering */
-	display: grid;
-	place-items: center;
-
-	overflow-x: hidden;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow-x: hidden;
 }
 
-/* === The “Vercel snippet” frame === */
+/* Options / full-page panel — same vibe as the site, less chrome than the old “Vercel frame” */
 .vercel-frame {
-	width: min(720px, 100%);
-	max-width: calc(100vw - 40px);
+  width: min(720px, 100%);
+  max-width: calc(100vw - 32px);
+  padding: var(--frame-pad);
+  padding-top: 18px;
 
-	padding: var(--frame-pad);
-	padding-top: 5px;
-	background: linear-gradient(180deg, var(--surface) 0%, #000 100%);
-	color: var(--text);
+  background: linear-gradient(180deg, var(--bg-elevated) 0%, var(--bg) 100%);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
 
-	position: relative;
-	isolation: isolate;
-
-	/* dashed outline */
-	border: 1px dashed var(--line);
+  position: relative;
+  isolation: isolate;
 }
 
-/* inner “header bar” like a code block */
-.vercel-frame::before {
-	content: '';
-	position: absolute;
-	left: 0;
-	right: 0;
-	top: 0;
-
-	height: 28px;
-	background: rgba(255, 255, 255, 0.03);
-	border-bottom: 1px solid var(--line-soft);
-	pointer-events: none;
-	z-index: 0;
-}
-
-/* Corner caps + outward extensions (drawn with layered gradients) */
-.vercel-frame::after {
-	content: '';
-	position: absolute;
-	inset: 0;
-
-	/* We draw 8 little strokes:
-				- 4 corner caps (inside the frame)
-				- 4 extensions (outside-ish looking, but still drawn within ::after)
-				The trick: place them at corners and let them "extend" using background-size. */
-	background:
-		/* top-left cap */
-		linear-gradient(var(--line), var(--line)) left top / var(--corner)
-			var(--corner-stroke) no-repeat,
-		linear-gradient(var(--line), var(--line)) left top / var(--corner-stroke)
-			var(--corner) no-repeat,
-		/* top-right cap */ linear-gradient(var(--line), var(--line)) right top /
-			var(--corner) var(--corner-stroke) no-repeat,
-		linear-gradient(var(--line), var(--line)) right top / var(--corner-stroke)
-			var(--corner) no-repeat,
-		/* bottom-left cap */ linear-gradient(var(--line), var(--line)) left
-			calc(100% + 0.5px) / var(--corner) var(--corner-stroke) no-repeat,
-		linear-gradient(var(--line), var(--line)) left calc(100% + 0.5px) /
-			var(--corner-stroke) var(--corner) no-repeat,
-		/* bottom-right cap */ linear-gradient(var(--line), var(--line)) right
-			calc(100% + 0.5px) / var(--corner) var(--corner-stroke) no-repeat,
-		linear-gradient(var(--line), var(--line)) right calc(100% + 0.5px) /
-			var(--corner-stroke) var(--corner) no-repeat,
-		/* outward “extensions” (faux outside) */
-			linear-gradient(var(--line-soft), var(--line-soft)) left top /
-			calc(var(--corner) + var(--corner-extend)) var(--corner-stroke) no-repeat,
-		linear-gradient(var(--line-soft), var(--line-soft)) left top /
-			var(--corner-stroke) calc(var(--corner) + var(--corner-extend)) no-repeat,
-		linear-gradient(var(--line-soft), var(--line-soft)) right top /
-			calc(var(--corner) + var(--corner-extend)) var(--corner-stroke) no-repeat,
-		linear-gradient(var(--line-soft), var(--line-soft)) right top /
-			var(--corner-stroke) calc(var(--corner) + var(--corner-extend)) no-repeat,
-		linear-gradient(var(--line-soft), var(--line-soft)) left bottom /
-			calc(var(--corner) + var(--corner-extend)) var(--corner-stroke) no-repeat,
-		linear-gradient(var(--line-soft), var(--line-soft)) left bottom /
-			var(--corner-stroke) calc(var(--corner) + var(--corner-extend)) no-repeat,
-		linear-gradient(var(--line-soft), var(--line-soft)) right bottom /
-			calc(var(--corner) + var(--corner-extend)) var(--corner-stroke) no-repeat,
-		linear-gradient(var(--line-soft), var(--line-soft)) right bottom /
-			var(--corner-stroke) calc(var(--corner) + var(--corner-extend)) no-repeat;
-
-	/* pull the extension strokes “past” the dashed border visually */
-	pointer-events: none;
-	z-index: 1;
-	opacity: 0.9;
-}
-
-/* Ensure content sits above decorations */
 .vercel-frame > * {
-	position: relative;
-	z-index: 2;
-	min-width: 0;
+  position: relative;
+  z-index: 1;
+  min-width: 0;
 }
 
-/* Layout helpers */
 .stack {
-	display: flex;
-	flex-direction: column;
-	gap: 10px;
-	min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
 }
 
 .hero {
-	gap: 8px;
+  gap: 8px;
 }
 
 .divider {
-	height: 1px;
-	width: 100%;
-	background: rgba(255, 255, 255, 0.1);
-	margin: 6px 0;
+  height: 1px;
+  width: 100%;
+  background: var(--line);
+  margin: 6px 0;
 }
 
-/* Typography */
 h1 {
-	margin: 0;
-	font-size: 18px;
-	font-weight: 700;
-	letter-spacing: 0.08em;
-	line-height: 1.05;
-	text-transform: uppercase;
-
-	font-family:
-		'Instrument Serif', ui-serif, Georgia, Cambria, 'Times New Roman', Times,
-		serif;
-
-	color: transparent;
-	background-image: linear-gradient(90deg, var(--red), var(--blue));
-	-webkit-background-clip: text;
-	background-clip: text;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 4vw, 1.85rem);
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: transparent;
+  background-image: linear-gradient(
+    135deg,
+    #fff 0%,
+    rgba(255, 255, 255, 0.75) 45%,
+    rgba(180, 210, 255, 0.95) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
 }
 
 p {
-	margin: 0;
-	color: var(--muted);
+  margin: 0;
+  color: var(--muted);
 }
 
 small,
 .muted {
-	color: var(--muted);
-	font-size: 12px;
+  color: var(--muted);
+  font-size: 12px;
 }
 
-/* Section title row */
 .section-title {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 10px;
-
-	font-size: 12px;
-	font-weight: 800;
-	color: rgba(255, 255, 255, 0.86);
-
-	min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.88);
+  min-width: 0;
 }
 
 .pill {
-	display: inline-flex;
-	align-items: center;
-	padding: 6px 8px;
-
-	border: 1px solid var(--line-soft);
-	color: rgba(255, 255, 255, 0.7);
-	background: transparent;
-
-	font-weight: 800;
-	font-size: 11px;
-	letter-spacing: 0.08em;
-	text-transform: uppercase;
-
-	white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 8px;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.03);
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
-/* List: responsive + no overflow */
+.radio-group,
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.radio-option,
+.checkbox-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--control-border);
+  border-radius: 10px;
+  background: var(--control-bg);
+  cursor: pointer;
+  transition:
+    border-color 0.2s var(--ease-smooth),
+    background 0.2s var(--ease-smooth);
+}
+
+.radio-option:hover,
+.checkbox-option:hover {
+  border-color: var(--control-border-strong);
+  background: var(--control-bg-hover);
+}
+
+.radio-option input[type="radio"],
+.checkbox-option input[type="checkbox"] {
+  margin-top: 2px;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+  accent-color: var(--accent);
+}
+
+.radio-content,
+.checkbox-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  font-size: 12px;
+}
+
+.radio-content strong,
+.checkbox-content strong {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.slider-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.slider-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.slider-value {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  min-width: 46px;
+  text-align: right;
+}
+
+.slider {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--line-soft);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 22%, #fff);
+  cursor: pointer;
+  border: 2px solid rgba(3, 3, 6, 0.9);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.22);
+}
+
+.slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 22%, #fff);
+  cursor: pointer;
+  border: 2px solid rgba(3, 3, 6, 0.9);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.22);
+}
+
+.slider:focus-visible::-webkit-slider-thumb {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.22),
+    0 0 0 4px rgba(94, 184, 255, 0.2);
+}
+
+.slider:focus-visible::-moz-range-thumb {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.22),
+    0 0 0 4px rgba(94, 184, 255, 0.2);
+}
+
 .list {
-	list-style: none;
-	padding: 0;
-	margin: 0;
-
-	display: flex;
-	flex-direction: column;
-	gap: 10px;
-
-	min-width: 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
 }
 
 .list li {
-	padding: 10px 12px;
-	border: 1px solid var(--line-soft);
-	background: rgba(255, 255, 255, 0.02);
-
-	display: flex;
-	align-items: center;
-	gap: 12px;
-
-	/* allow wrapping instead of forcing overflow */
-	flex-wrap: wrap;
-	min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .label {
-	flex: 1 1 180px;
-	min-width: 140px;
+  flex: 1 1 180px;
+  min-width: 140px;
 }
 
-/* “Keycap” */
 .shortcut {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-
-	padding: 6px 8px;
-	border: 1px solid var(--line-soft);
-	background: transparent;
-	color: rgba(255, 255, 255, 0.78);
-
-	font-size: 11px;
-	font-weight: 800;
-	letter-spacing: 0.08em;
-
-	white-space: nowrap;
-	max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 8px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
-/* Actions */
 .actions {
-	display: flex;
-	gap: 10px;
-	flex-wrap: wrap;
-	justify-content: flex-start;
-	min-width: 0;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  min-width: 0;
 }
 
 button,
 .btn {
-	appearance: none;
-	border: 1px solid var(--line);
-	background: rgba(0, 0, 0, 0.4);
-
-	color: rgba(255, 255, 255, 0.92);
-	font-weight: 800;
-	letter-spacing: 0.06em;
-	text-transform: uppercase;
-	font-size: 11px;
-
-	padding: 10px 16px;
-	cursor: pointer;
-
-	max-width: 100%;
-	text-decoration: none;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	transition: all 0.15s ease;
+  appearance: none;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 12px;
+  padding: 9px 14px;
+  cursor: pointer;
+  max-width: 100%;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.2s var(--ease-smooth),
+    border-color 0.2s var(--ease-smooth),
+    transform 0.15s var(--ease-smooth);
 }
+
 .eyebrow {
-	padding-bottom: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding-bottom: 4px;
 }
 
 button:hover,
 .btn:hover {
-	border-color: rgba(0, 163, 255, 0.8);
-	background: rgba(0, 163, 255, 0.08);
-	box-shadow: 0 0 0 1px rgba(0, 163, 255, 0.3);
-	transform: translateY(-1px);
+  border-color: var(--control-border-strong);
+  background: var(--control-bg-hover);
+  transform: translateY(-1px);
 }
 
 button:active,
 .btn:active {
-	border-color: rgba(0, 163, 255, 0.9);
-	background: rgba(0, 163, 255, 0.12);
-	box-shadow: 0 0 0 1px rgba(0, 163, 255, 0.4);
-	transform: translateY(0);
+  transform: translateY(0);
+}
+
+.btn-sm {
+  padding: 7px 11px;
+  font-size: 11px;
 }
 
 .note {
-	padding: 10px 12px;
-	border: 1px solid var(--line-soft);
-	background: rgba(255, 255, 255, 0.02);
+  padding: 10px 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
 }

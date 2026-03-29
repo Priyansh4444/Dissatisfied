@@ -1,0 +1,92 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import '../styles/site.css';
+import { REPO_URL } from '../scripts/install-target';
+import GitHubIcon from '../components/GitHubIcon.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  /** Path for nav current page: '/', '/about', '/privacy' */
+  currentPath?: string;
+}
+
+const {
+  title,
+  description = 'Dissatisfied — focus without the noise. A browser extension for YouTube, Twitter/X, and Excalidraw.',
+  currentPath = '/',
+} = Astro.props;
+
+const repoUrl = REPO_URL;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/png" sizes="128x128" href="/logo-brand.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <ClientRouter />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="site-header-float">
+      <header class="site-header site-chrome">
+        <a class="brand-logo" href="/" aria-label="Dissatisfied — home" data-astro-prefetch="load">
+          <img src="/logo-brand.png" alt="" width="24" height="24" decoding="async" />
+        </a>
+        <nav class="nav nav-main" aria-label="Primary">
+          <a href="/" aria-current={currentPath === '/' ? 'page' : undefined} data-astro-prefetch="load">
+            Home
+          </a>
+          <a href="/about" aria-current={currentPath === '/about' ? 'page' : undefined} data-astro-prefetch="load">
+            About
+          </a>
+          <a href="/privacy" aria-current={currentPath === '/privacy' ? 'page' : undefined} data-astro-prefetch="load">
+            Privacy
+          </a>
+        </nav>
+        <a
+          class="nav-install nav-gh"
+          href={repoUrl}
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Dissatisfied on GitHub"
+        >
+          <GitHubIcon />
+        </a>
+      </header>
+    </div>
+    <main id="main">
+      <slot />
+    </main>
+    <footer class="site-footer site-chrome">
+      <span>Open source. No tracking on this site.</span>
+      <div class="footer-links">
+        <a href="/about" data-astro-prefetch="load">About</a>
+        <a href="/privacy" data-astro-prefetch="load">Privacy</a>
+        <a
+          class="footer-gh"
+          href={repoUrl}
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Dissatisfied on GitHub"
+        >
+          <GitHubIcon />
+        </a>
+      </div>
+    </footer>
+    <script>
+      import '../scripts/lenis-init.ts';
+      import '../scripts/home-focus.ts';
+    </script>
+  </body>
+</html>
