@@ -6,7 +6,12 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "lint": "oxlint -c ../.oxlintrc.json src",
+    "lint:fix": "oxlint -c ../.oxlintrc.json src --fix",
+    "format": "oxfmt -c ../.oxfmtrc.json --write src package.json astro.config.mjs",
+    "format:check": "oxfmt -c ../.oxfmtrc.json --check src package.json astro.config.mjs",
+    "check": "bun run lint && bun run format:check"
   },
   "dependencies": {
     "@astrojs/solid-js": "6.0.1",
@@ -15,5 +20,9 @@
     "lenis": "^1.3.21",
     "solid-js": "^1.9.12",
     "tailwindcss": "^4.2.2"
+  },
+  "devDependencies": {
+    "oxfmt": "^0.42.0",
+    "oxlint": "^1.57.0"
   }
 }
