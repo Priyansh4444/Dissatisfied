@@ -12,7 +12,7 @@
         <div class="title">
           <span class="eyebrow">Dissatisfied</span>
           <div class="row">
-            <strong id="site-title">Quick settings</strong>
+            <strong id="site-title"></strong>
             <div class="segmented" role="tablist" aria-label="Popup views">
               <button
                 type="button"
@@ -40,14 +40,22 @@
       </header>
 
       <section class="view is-active" data-view-panel="quick" role="tabpanel">
-        <section
-          class="panel is-hidden"
-          data-site-panel="youtube"
-          aria-label="YouTube quick settings"
-        >
+        <!-- YouTube -->
+        <section class="panel is-hidden" data-site-panel="youtube" aria-label="YouTube quick settings">
           <div class="section-title">
-            <span>YouTube focus memory</span>
-            <span class="pill">Config</span>
+            <span>Shortcuts</span>
+            <span class="pill">Keys</span>
+          </div>
+          <p class="muted">
+            <kbd>`</kbd> on the page toggles focus. Extension:
+            <kbd>Ctrl+Shift+Y</kbd> / <kbd>⌘⇧Y</kbd> (Mac).
+          </p>
+
+          <div class="divider" role="separator" aria-hidden="true"></div>
+
+          <div class="section-title">
+            <span>Focus memory</span>
+            <span class="pill">Memory</span>
           </div>
           <div class="radio-group">
             <label class="radio-option">
@@ -72,19 +80,53 @@
           </div>
         </section>
 
-        <section
-          class="panel is-hidden"
-          data-site-panel="twitter"
-          aria-label="Twitter quick settings"
-        >
+        <!-- Twitter / X -->
+        <section class="panel is-hidden" data-site-panel="twitter" aria-label="Twitter quick settings">
           <div class="section-title">
-            <span>Twitter/X quick settings</span>
-            <span class="pill">Config</span>
+            <span>Shortcuts</span>
+            <span class="pill">Keys</span>
+          </div>
+          <p class="muted">
+            On-page: <kbd>Ctrl+B</kbd> (<kbd>⌘B</kbd> on Mac), <kbd>Alt+Shift+X</kbd>. Extension:
+            <kbd>Ctrl+Shift+X</kbd> / <kbd>⌘⇧X</kbd> (Mac).
+          </p>
+
+          <div class="divider" role="separator" aria-hidden="true"></div>
+
+          <div class="section-title">
+            <span>Timeline width</span>
+            <span class="pill">Layout</span>
+          </div>
+          <div class="slider-container">
+            <label for="twitter-width-slider" class="slider-label">
+              <span>Width in focus mode</span>
+              <span class="slider-value" id="twitter-width-value">80%</span>
+            </label>
+            <input
+              type="range"
+              id="twitter-width-slider"
+              min="30"
+              max="100"
+              step="5"
+              value="80"
+              class="slider"
+            />
           </div>
 
+          <div class="divider" role="separator" aria-hidden="true"></div>
+
+          <div class="section-title">
+            <span>Focus memory</span>
+            <span class="pill">Memory</span>
+          </div>
           <div class="radio-group">
             <label class="radio-option">
-              <input type="radio" name="twitterPersistenceMode" value="tab" id="twitter-mode-tab" />
+              <input
+                type="radio"
+                name="twitterPersistenceMode"
+                value="tab"
+                id="twitter-mode-tab"
+              />
               <div class="radio-content">
                 <strong>This tab only</strong>
                 <span class="muted">Resets when you leave or close the tab.</span>
@@ -106,22 +148,10 @@
 
           <div class="divider" role="separator" aria-hidden="true"></div>
 
-          <div class="slider-container">
-            <label for="twitter-width-slider" class="slider-label">
-              <span>Timeline width</span>
-              <span class="slider-value" id="twitter-width-value">80%</span>
-            </label>
-            <input
-              type="range"
-              id="twitter-width-slider"
-              min="30"
-              max="100"
-              step="5"
-              value="80"
-              class="slider"
-            />
+          <div class="section-title">
+            <span>Reading</span>
+            <span class="pill">Text</span>
           </div>
-
           <label class="checkbox-option">
             <input type="checkbox" id="twitter-use-default-font" />
             <div class="checkbox-content">
@@ -148,6 +178,10 @@
 
           <div class="divider" role="separator" aria-hidden="true"></div>
 
+          <div class="section-title">
+            <span>What to hide</span>
+            <span class="pill">Focus</span>
+          </div>
           <div class="checkbox-group">
             <label class="checkbox-option">
               <input type="checkbox" data-control-key="hideSidebarColumn" />
@@ -183,18 +217,21 @@
           </div>
         </section>
 
+        <!-- Excalidraw -->
         <section
           class="panel is-hidden"
           data-site-panel="excalidraw"
           aria-label="Excalidraw quick settings"
         >
           <div class="section-title">
-            <span>Excalidraw</span>
-            <span class="pill">Info</span>
+            <span>Shortcuts</span>
+            <span class="pill">Keys</span>
           </div>
-          <p class="muted">No settings here yet.</p>
+          <p class="muted"><kbd>Ctrl+B</kbd> on the page (<kbd>⌘B</kbd> on Mac).</p>
+          <p class="muted">No extra settings here yet.</p>
         </section>
 
+        <!-- Unknown -->
         <section class="panel is-hidden" data-site-panel="unknown" aria-label="Unsupported page">
           <div class="section-title">
             <span>Quick settings</span>

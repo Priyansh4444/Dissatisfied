@@ -13,6 +13,16 @@ body {
   min-height: unset;
 }
 
+kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 0.85em;
+  font-family: inherit;
+  background: var(--line-soft, rgba(255, 255, 255, 0.08));
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.12));
+  border-radius: 4px;
+}
+
 /* Popup shell matches options panel */
 .frame {
   width: 360px;
@@ -100,6 +110,7 @@ body {
 
 .view.is-active {
   display: block;
+  animation: fade-up var(--motion-enter) var(--ease-smooth);
 }
 
 .panel.is-hidden {
