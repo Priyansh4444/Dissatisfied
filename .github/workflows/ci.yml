@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies (extension)
+        run: bun install --frozen-lockfile
+
+      - name: Install dependencies (website)
+        working-directory: website
+        run: bun install --frozen-lockfile
+
+      - name: Lint & format check
+        run: bun run check
+
+      - name: Build extension (Chrome)
+        run: bun run build
+
+      - name: Build website
+        working-directory: website
+        run: bun run build
