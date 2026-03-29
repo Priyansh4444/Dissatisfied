@@ -1,15 +1,15 @@
-import { getInstallTarget } from './install-target';
+import { getInstallTarget } from "./install-target";
 
 function apply() {
-  const el = document.getElementById('hero-extension-cta') as HTMLAnchorElement | null;
+  const el = document.getElementById("hero-extension-cta") as HTMLAnchorElement | null;
   if (!el) return;
 
-  const icon = el.querySelector<HTMLImageElement>('[data-hero-cta-icon]');
-  const text = el.querySelector<HTMLElement>('[data-hero-cta-text]');
+  const icon = el.querySelector<HTMLImageElement>("[data-hero-cta-icon]");
+  const text = el.querySelector<HTMLElement>("[data-hero-cta-text]");
   const target = getInstallTarget();
 
   el.href = target.href;
-  el.setAttribute('aria-label', target.ariaLabel);
+  el.setAttribute("aria-label", target.ariaLabel);
 
   if (icon) {
     icon.src = target.iconSrc;
@@ -22,4 +22,4 @@ function apply() {
 }
 
 apply();
-document.addEventListener('astro:page-load', apply);
+document.addEventListener("astro:page-load", apply);

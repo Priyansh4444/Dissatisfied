@@ -1,9 +1,9 @@
-import Lenis from 'lenis';
-import 'lenis/dist/lenis.css';
+import Lenis from "lenis";
+import "lenis/dist/lenis.css";
 
 let lenis: InstanceType<typeof Lenis> | null = null;
 
-const reducedMotionMq = window.matchMedia('(prefers-reduced-motion: reduce)');
+const reducedMotionMq = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 function setupLenis() {
   if (reducedMotionMq.matches) {
@@ -19,10 +19,10 @@ function setupLenis() {
 }
 
 setupLenis();
-document.addEventListener('astro:page-load', setupLenis);
+document.addEventListener("astro:page-load", setupLenis);
 
-if (typeof reducedMotionMq.addEventListener === 'function') {
-  reducedMotionMq.addEventListener('change', setupLenis);
+if (typeof reducedMotionMq.addEventListener === "function") {
+  reducedMotionMq.addEventListener("change", setupLenis);
 } else {
   reducedMotionMq.addListener(setupLenis);
 }

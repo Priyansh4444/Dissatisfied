@@ -1,192 +1,181 @@
-import { build, $ } from 'bun'
-import { join, sep as pathSeparator } from 'path'
-import { watch } from 'fs'
+import { build, $ } from "bun";
+import { join, sep as pathSeparator } from "path";
+import { watch } from "fs";
 
 // @ts-expect-error: we don't care about types, this is a string
-import chromePolyfill from 'webextension-polyfill' with { type: 'text' }
+import chromePolyfill from "webextension-polyfill" with { type: "text" };
 
-type BuildTarget = 'chrome' | 'firefox' | 'safari'
+type BuildTarget = "chrome" | "firefox" | "safari";
 
-async function buildExtension(target: BuildTarget = 'chrome') {
-	const outdir = target === 'chrome' ? 'dist' : `dist-${target}`
+async function buildExtension(target: BuildTarget = "chrome") {
+  const outdir = target === "chrome" ? "dist" : `dist-${target}`;
 
-	// remove dist folder (if present) before rebuild
-	await $`rm -r ${outdir}`.nothrow().quiet()
+  // remove dist folder (if present) before rebuild
+  await $`rm -r ${outdir}`.nothrow().quiet();
 
-	// Select the appropriate manifest and background script
-	const manifestFile =
-		target === 'chrome'
-			? './public/manifest.json'
-			: `./public/manifest.${target}.json`
+  // Select the appropriate manifest and background script
+  const manifestFile =
+    target === "chrome" ? "./public/manifest.json" : `./public/manifest.${target}.json`;
 
-	const backgroundScript =
-		target === 'safari'
-			? join('src', 'background.safari.ts')
-			: join('src', 'background.ts')
+  const backgroundScript =
+    target === "safari" ? join("src", "background.safari.ts") : join("src", "background.ts");
 
-	const manifest = (
-		await import(manifestFile, {
-			with: { type: 'json' },
-		})
-	).default
+  const manifest = (
+    await import(manifestFile, {
+      with: { type: "json" },
+    })
+  ).default;
 
-	// Build background script
-	await build({
-		entrypoints: [backgroundScript],
-		outdir,
-		target: 'browser',
-		minify: false,
-		banner: `/* ${manifest.name}\n * Copyright (c) ${new Date().getFullYear()} ${manifest.author}\n */\n\n${chromePolyfill}`,
-	})
+  // Build background script
+  await build({
+    entrypoints: [backgroundScript],
+    outdir,
+    target: "browser",
+    minify: false,
+    banner: `/* ${manifest.name}\n * Copyright (c) ${new Date().getFullYear()} ${manifest.author}\n */\n\n${chromePolyfill}`,
+  });
 
-	// Rename background script to ensure consistent naming across all builds.
-	// Only needed for Safari which uses a different source file.
-	if (target === 'safari') {
-		const builtBackgroundFile = join(outdir, 'background.safari.js')
-		const targetBackgroundFile = join(outdir, 'background.js')
-		if (await Bun.file(builtBackgroundFile).exists()) {
-			await Bun.write(targetBackgroundFile, Bun.file(builtBackgroundFile))
-			await $`rm ${builtBackgroundFile}`.nothrow().quiet()
-		}
-	}
+  // Rename background script to ensure consistent naming across all builds.
+  // Only needed for Safari which uses a different source file.
+  if (target === "safari") {
+    const builtBackgroundFile = join(outdir, "background.safari.js");
+    const targetBackgroundFile = join(outdir, "background.js");
+    if (await Bun.file(builtBackgroundFile).exists()) {
+      await Bun.write(targetBackgroundFile, Bun.file(builtBackgroundFile));
+      await $`rm ${builtBackgroundFile}`.nothrow().quiet();
+    }
+  }
 
-	// Build content scripts
-	await build({
-		entrypoints: [
-			join('src', 'content-youtube.ts'),
-			join('src', 'content-twitter.ts'),
-			join('src', 'content-excalidraw.ts'),
-		],
-		outdir,
-		target: 'browser',
-		minify: false,
-		banner: `/* ${manifest.name} Content Scripts\n * Copyright (c) ${new Date().getFullYear()} ${manifest.author}\n */`,
-	})
+  // Build content scripts
+  await build({
+    entrypoints: [
+      join("src", "content-youtube.ts"),
+      join("src", "content-twitter.ts"),
+      join("src", "content-excalidraw.ts"),
+    ],
+    outdir,
+    target: "browser",
+    minify: false,
+    banner: `/* ${manifest.name} Content Scripts\n * Copyright (c) ${new Date().getFullYear()} ${manifest.author}\n */`,
+  });
 
-	// Safari: prepend webextension-polyfill to content scripts so chrome.* works
-	if (target === 'safari') {
-		for (const name of [
-			'content-youtube.js',
-			'content-twitter.js',
-			'content-excalidraw.js',
-		]) {
-			const path = join(outdir, name)
-			const content = await Bun.file(path).text()
-			await Bun.write(path, `${chromePolyfill}\n\n${content}`)
-		}
-	}
+  // Safari: prepend webextension-polyfill to content scripts so chrome.* works
+  if (target === "safari") {
+    for (const name of ["content-youtube.js", "content-twitter.js", "content-excalidraw.js"]) {
+      const path = join(outdir, name);
+      const content = await Bun.file(path).text();
+      await Bun.write(path, `${chromePolyfill}\n\n${content}`);
+    }
+  }
 
-	// copy public files (excluding browser-specific manifests)
-	await $`cp public/icon*.png ${outdir}/`
+  // copy public files (excluding browser-specific manifests)
+  await $`cp public/icon*.png ${outdir}/`;
 
-	// Copy the appropriate manifest for the target browser
-	if (target === 'chrome') {
-		await $`cp public/manifest.json ${outdir}/`
-	} else {
-		await $`cp public/manifest.${target}.json ${outdir}/manifest.json`
-	}
+  // Copy the appropriate manifest for the target browser
+  if (target === "chrome") {
+    await $`cp public/manifest.json ${outdir}/`;
+  } else {
+    await $`cp public/manifest.${target}.json ${outdir}/manifest.json`;
+  }
 
-	// copy static asset folders preserving structure
-	// - copy global styles (e.g., src/styles) -> dist/styles
-	await $`mkdir -p ${outdir}/styles`
-	await $`cp -r src/styles/* ${outdir}/styles`.nothrow().quiet()
+  // copy static asset folders preserving structure
+  // - copy global styles (e.g., src/styles) -> dist/styles
+  await $`mkdir -p ${outdir}/styles`;
+  await $`cp -r src/styles/* ${outdir}/styles`.nothrow().quiet();
 
-	// copy UI files preserving directory structure
-	await $`mkdir -p ${outdir}/ui/options`
-	await $`cp -r src/ui/options/* ${outdir}/ui/options`.nothrow().quiet()
+  // copy UI files preserving directory structure
+  await $`mkdir -p ${outdir}/ui/options`;
+  await $`cp -r src/ui/options/* ${outdir}/ui/options`.nothrow().quiet();
 
-	// copy popup UI files preserving directory structure
-	await $`mkdir -p ${outdir}/ui/popup`
-	await $`cp -r src/ui/popup/* ${outdir}/ui/popup`.nothrow().quiet()
+  // copy popup UI files preserving directory structure
+  await $`mkdir -p ${outdir}/ui/popup`;
+  await $`cp -r src/ui/popup/* ${outdir}/ui/popup`.nothrow().quiet();
 
-	// copy shared UI modules preserving directory structure
-	await $`mkdir -p ${outdir}/ui/shared`
-	await $`cp -r src/ui/shared/* ${outdir}/ui/shared`.nothrow().quiet()
+  // copy shared UI modules preserving directory structure
+  await $`mkdir -p ${outdir}/ui/shared`;
+  await $`cp -r src/ui/shared/* ${outdir}/ui/shared`.nothrow().quiet();
 
-	// copy global CSS if it exists
-	await $`cp src/ui/global.css ${outdir}/ui/`.nothrow().quiet()
+  // copy global CSS if it exists
+  await $`cp src/ui/global.css ${outdir}/ui/`.nothrow().quiet();
 
-	// remove manifest.json $schema key after build to prevent browser warning
-	const contents = JSON.stringify(manifest, null, '\t')
-	const newContents = contents
-		.split('\n')
-		.filter((a) => !a.trim().startsWith('"$schema"'))
-		.join('\n')
-	await Bun.write(Bun.file(join(outdir, 'manifest.json')), newContents)
+  // remove manifest.json $schema key after build to prevent browser warning
+  const contents = JSON.stringify(manifest, null, "\t");
+  const newContents = contents
+    .split("\n")
+    .filter((a) => !a.trim().startsWith('"$schema"'))
+    .join("\n");
+  await Bun.write(Bun.file(join(outdir, "manifest.json")), newContents);
 
-	// Update options page links for Firefox and Safari
-	if (target === 'firefox' || target === 'safari') {
-		const optionsPath = join(outdir, 'ui', 'options', 'index.html')
-		const optionsHtml = await Bun.file(optionsPath).text()
-		const browserPrefix = target === 'firefox' ? 'about:addons' : 'safari'
-		const updatedHtml = optionsHtml.replace(
-			'chrome://extensions/shortcuts',
-			target === 'firefox'
-				? 'about:addons'
-				: 'Open Safari → Settings → Extensions',
-		)
-		await Bun.write(Bun.file(optionsPath), updatedHtml)
-	}
+  // Update options page links for Firefox and Safari
+  if (target === "firefox" || target === "safari") {
+    const optionsPath = join(outdir, "ui", "options", "index.html");
+    const optionsHtml = await Bun.file(optionsPath).text();
+    const updatedHtml = optionsHtml.replace(
+      "chrome://extensions/shortcuts",
+      target === "firefox" ? "about:addons" : "Open Safari → Settings → Extensions",
+    );
+    await Bun.write(Bun.file(optionsPath), updatedHtml);
+  }
 
-	// Firefox Add-on review: include actual source code in the package
-	if (target === 'firefox' && process.env.FIREFOX_FOR_REVIEW === '1') {
-		const sourceDir = join(outdir, 'source')
-		await $`mkdir -p ${sourceDir}`.quiet()
-		await $`cp -r src ${sourceDir}/`.quiet()
-		await $`mkdir -p ${join(sourceDir, 'public')}`.quiet()
-		await $`cp public/manifest.firefox.json ${join(sourceDir, 'public')}/`.quiet()
-		await $`cp public/icon*.png ${join(sourceDir, 'public')}/`.nothrow().quiet()
-		await $`cp build.ts package.json tsconfig.json ${sourceDir}/`.quiet()
-		console.log(`✓ Added source code to ${outdir}/source/ for review`)
-	}
+  // Firefox Add-on review: include actual source code in the package
+  if (target === "firefox" && process.env.FIREFOX_FOR_REVIEW === "1") {
+    const sourceDir = join(outdir, "source");
+    await $`mkdir -p ${sourceDir}`.quiet();
+    await $`cp -r src ${sourceDir}/`.quiet();
+    await $`mkdir -p ${join(sourceDir, "public")}`.quiet();
+    await $`cp public/manifest.firefox.json ${join(sourceDir, "public")}/`.quiet();
+    await $`cp public/icon*.png ${join(sourceDir, "public")}/`.nothrow().quiet();
+    await $`cp build.ts package.json tsconfig.json ${sourceDir}/`.quiet();
+    console.log(`✓ Added source code to ${outdir}/source/ for review`);
+  }
 
-	console.log(`✓ Built ${target} extension to ${outdir}/`)
+  console.log(`✓ Built ${target} extension to ${outdir}/`);
 }
 
 // Check if we're building for a specific target or all targets
-const targetArg = process.argv[2]
+const targetArg = process.argv[2];
 
-if (process.env.NODE_ENV === 'production') {
-	if (targetArg === 'all') {
-		// Build all targets
-		await buildExtension('chrome')
-		await buildExtension('firefox')
-		await buildExtension('safari')
-	} else {
-		// Build specific target or default to chrome
-		const target = (targetArg as BuildTarget) || 'chrome'
-		await buildExtension(target)
-	}
-	process.exit()
+if (process.env.NODE_ENV === "production") {
+  if (targetArg === "all") {
+    // Build all targets
+    await buildExtension("chrome");
+    await buildExtension("firefox");
+    await buildExtension("safari");
+  } else {
+    // Build specific target or default to chrome
+    const target = (targetArg as BuildTarget) || "chrome";
+    await buildExtension(target);
+  }
+  process.exit();
 }
 
 // Development mode - watch for changes (Chrome only)
-await buildExtension('chrome')
+await buildExtension("chrome");
 
-console.log('Watching for changes...')
+console.log("Watching for changes...");
 watch(
-	import.meta.dir,
-	{
-		recursive: true,
-	},
-	async (_, filename) => {
-		if (!filename) return
-		// build script is auto-reloaded by bun
-		if (filename === import.meta.file) return
-		console.log(filename)
+  import.meta.dir,
+  {
+    recursive: true,
+  },
+  async (_, filename) => {
+    if (!filename) return;
+    // build script is auto-reloaded by bun
+    if (filename === import.meta.file) return;
+    console.log(filename);
 
-		// adapt to your project
-		if (filename.startsWith('website' + pathSeparator)) return
-		if (
-			!filename.startsWith('src' + pathSeparator) &&
-			!filename.startsWith('public' + pathSeparator) &&
-			!filename.startsWith('src' + pathSeparator + 'styles' + pathSeparator) &&
-			!filename.startsWith('src' + pathSeparator + 'ui' + pathSeparator)
-		)
-			return
+    // adapt to your project
+    if (filename.startsWith("website" + pathSeparator)) return;
+    if (
+      !filename.startsWith("src" + pathSeparator) &&
+      !filename.startsWith("public" + pathSeparator) &&
+      !filename.startsWith("src" + pathSeparator + "styles" + pathSeparator) &&
+      !filename.startsWith("src" + pathSeparator + "ui" + pathSeparator)
+    )
+      return;
 
-		console.write(`Rebuilding, file ${filename} changed.`)
-		await buildExtension('chrome')
-		console.write(' Done.\n')
-	},
-)
+    console.write(`Rebuilding, file ${filename} changed.`);
+    await buildExtension("chrome");
+    console.write(" Done.\n");
+  },
+);

@@ -66,7 +66,9 @@
     border-radius: 0.35em;
     outline: 1px solid transparent;
     outline-offset: 0.12em;
-    transition: outline-color 0.35s var(--ease-smooth), background 0.35s var(--ease-smooth);
+    transition:
+      outline-color 0.35s var(--ease-smooth),
+      background 0.35s var(--ease-smooth);
   }
 
   .focus-title-trigger:hover {
@@ -127,7 +129,12 @@
   letter-spacing: -0.04em;
   line-height: 1.05;
   margin: 0 0 1rem;
-  background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.72) 50%, rgba(180, 210, 255, 0.95) 100%);
+  background: linear-gradient(
+    135deg,
+    #fff 0%,
+    rgba(255, 255, 255, 0.72) 50%,
+    rgba(180, 210, 255, 0.95) 100%
+  );
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -252,7 +259,9 @@ body.focus-hover .home-hero h1.headline {
   box-shadow:
     0 24px 48px rgba(0, 0, 0, 0.45),
     0 0 0 1px rgba(255, 255, 255, 0.04) inset;
-  transition: transform 0.5s var(--ease-out-expo), box-shadow 0.5s var(--ease-out-expo);
+  transition:
+    transform 0.5s var(--ease-out-expo),
+    box-shadow 0.5s var(--ease-out-expo);
   opacity: 0;
   animation: shot-in 0.95s var(--ease-out-expo) forwards;
 }
