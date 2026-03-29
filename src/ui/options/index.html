@@ -12,10 +12,9 @@
       <header class="hero stack">
         <span class="eyebrow">Settings & Keybinds</span>
         <h1>Dissatisfied</h1>
-        <p class="muted">
-          Hides clutter on YouTube, Twitter/X, and Excalidraw so you can focus on content. Toggle
-          with <kbd>`</kbd> on YouTube, <kbd>Ctrl/Cmd+B</kbd> / <kbd>Option+Shift+X</kbd> on
-          Twitter, and <kbd>Ctrl/Cmd+B</kbd> on Excalidraw.
+        <p class="muted hero-lead">
+          Pick a site below and adjust only what matters. Press <kbd>`</kbd> on YouTube or
+          <kbd>Ctrl/Cmd+B</kbd> on Twitter and Excalidraw to toggle focus.
         </p>
       </header>
 
@@ -64,20 +63,30 @@
         </div>
       </nav>
 
+      <!-- YouTube -->
       <section
         class="website-panel is-active stack"
         data-site-panel="youtube"
         role="tabpanel"
         aria-label="YouTube settings"
       >
+        <section class="stack" aria-labelledby="youtube-shortcut-title">
+          <div class="section-title" id="youtube-shortcut-title">
+            <span>Shortcuts</span>
+            <span class="pill">Keys</span>
+          </div>
+          <p class="muted">
+            Press backtick on the page to toggle focus. Extension: <kbd>Ctrl+Shift+Y</kbd> (Win /
+            Linux), <kbd>⌘⇧Y</kbd> (Mac).
+          </p>
+        </section>
+
         <section class="stack" aria-labelledby="youtube-persistence-title">
           <div class="section-title" id="youtube-persistence-title">
-            <span>YouTube focus memory</span>
-            <span class="pill">Configuration</span>
+            <span>Focus memory</span>
+            <span class="pill">Memory</span>
           </div>
-
-          <p class="muted">When focus mode is remembered:</p>
-
+          <p class="muted">When is focus mode remembered?</p>
           <div class="radio-group">
             <label class="radio-option">
               <input
@@ -92,7 +101,6 @@
                 <span class="muted">Resets when you leave or close the tab.</span>
               </div>
             </label>
-
             <label class="radio-option">
               <input
                 type="radio"
@@ -106,135 +114,37 @@
               </div>
             </label>
           </div>
-
           <small class="muted note">Settings save automatically.</small>
         </section>
       </section>
 
+      <!-- Twitter / X -->
       <section
         class="website-panel stack"
         data-site-panel="twitter"
         role="tabpanel"
         aria-label="Twitter and X settings"
       >
-        <section class="stack" aria-labelledby="twitter-persistence-title">
-          <div class="section-title" id="twitter-persistence-title">
-            <span>Twitter/X focus memory</span>
-            <span class="pill">Configuration</span>
+        <section class="stack" aria-labelledby="twitter-shortcut-title">
+          <div class="section-title" id="twitter-shortcut-title">
+            <span>Shortcuts</span>
+            <span class="pill">Keys</span>
           </div>
-
-          <p class="muted">When focus mode is remembered:</p>
-
-          <div class="radio-group">
-            <label class="radio-option">
-              <input
-                type="radio"
-                name="twitterPersistenceMode"
-                value="tab"
-                id="twitter-mode-tab"
-                checked
-              />
-              <div class="radio-content">
-                <strong>This tab only (default)</strong>
-                <span class="muted">Resets when you leave or close the tab.</span>
-              </div>
-            </label>
-
-            <label class="radio-option">
-              <input
-                type="radio"
-                name="twitterPersistenceMode"
-                value="global"
-                id="twitter-mode-global"
-              />
-              <div class="radio-content">
-                <strong>All Twitter/X tabs</strong>
-                <span class="muted">Same state across all Twitter/X tabs.</span>
-              </div>
-            </label>
-          </div>
-
-          <small class="muted note">Settings save automatically. Separate from YouTube.</small>
+          <p class="muted">
+            On-page: <kbd>Ctrl+B</kbd> (<kbd>⌘B</kbd> on Mac), <kbd>Alt+Shift+X</kbd>. Extension:
+            <kbd>Ctrl+Shift+X</kbd> / <kbd>⌘⇧X</kbd> (Mac).
+          </p>
         </section>
-
-        <div class="divider" role="separator" aria-hidden="true"></div>
-
-        <section class="stack" aria-labelledby="twitter-controls-title">
-          <div class="section-title" id="twitter-controls-title">
-            <span>Twitter/X Focus Controls</span>
-            <span class="pill">Granular</span>
-          </div>
-
-          <p class="muted">Pick exactly what focus mode changes.</p>
-
-          <div class="checkbox-group">
-            <label class="checkbox-option">
-              <input
-                type="checkbox"
-                id="twitter-control-hide-sidebar"
-                data-control-key="hideSidebarColumn"
-                checked
-              />
-              <div class="checkbox-content">
-                <strong>Hide right sidebar</strong>
-                <span class="muted">Removes trends and suggestions on the right.</span>
-              </div>
-            </label>
-
-            <label class="checkbox-option">
-              <input
-                type="checkbox"
-                id="twitter-control-hide-chat"
-                data-control-key="hideChatDrawer"
-                checked
-              />
-              <div class="checkbox-content">
-                <strong>Hide chat drawer</strong>
-                <span class="muted">Hides the direct-message drawer panel.</span>
-              </div>
-            </label>
-
-            <label class="checkbox-option">
-              <input
-                type="checkbox"
-                id="twitter-control-hide-grok"
-                data-control-key="hideGrokDrawer"
-                checked
-              />
-              <div class="checkbox-content">
-                <strong>Hide Grok drawer</strong>
-                <span class="muted">Removes the Grok side panel.</span>
-              </div>
-            </label>
-
-            <label class="checkbox-option">
-              <input
-                type="checkbox"
-                id="twitter-control-center-timeline"
-                data-control-key="centerTimeline"
-                checked
-              />
-              <div class="checkbox-content">
-                <strong>Center timeline and hide main header</strong>
-                <span class="muted">Centers the main column and hides the top app header.</span>
-              </div>
-            </label>
-          </div>
-        </section>
-
-        <div class="divider" role="separator" aria-hidden="true"></div>
 
         <section class="stack" aria-labelledby="twitter-width-title">
           <div class="section-title" id="twitter-width-title">
-            <span>Twitter/X Width</span>
-            <span class="pill">Customization</span>
+            <span>Timeline width</span>
+            <span class="pill">Layout</span>
           </div>
-
-          <p class="muted">Timeline width in focus mode:</p>
-
+          <p class="muted">How wide the main column is in focus mode.</p>
           <div class="slider-container">
             <label for="twitter-width-slider" class="slider-label">
-              <span>Timeline Width:</span>
+              <span>Width</span>
               <span class="slider-value" id="twitter-width-value">80%</span>
             </label>
             <input
@@ -252,31 +162,65 @@
               <span>100%</span>
             </div>
           </div>
+          <small class="muted note">Applies the next time you toggle focus.</small>
+        </section>
 
-          <small class="muted note">Applies next time you toggle.</small>
+        <div class="divider" role="separator" aria-hidden="true"></div>
+
+        <section class="stack" aria-labelledby="twitter-persistence-title">
+          <div class="section-title" id="twitter-persistence-title">
+            <span>Focus memory</span>
+            <span class="pill">Memory</span>
+          </div>
+          <p class="muted">When is focus mode remembered?</p>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input
+                type="radio"
+                name="twitterPersistenceMode"
+                value="tab"
+                id="twitter-mode-tab"
+                checked
+              />
+              <div class="radio-content">
+                <strong>This tab only (default)</strong>
+                <span class="muted">Resets when you leave or close the tab.</span>
+              </div>
+            </label>
+            <label class="radio-option">
+              <input
+                type="radio"
+                name="twitterPersistenceMode"
+                value="global"
+                id="twitter-mode-global"
+              />
+              <div class="radio-content">
+                <strong>All Twitter/X tabs</strong>
+                <span class="muted">Same state across all Twitter/X tabs.</span>
+              </div>
+            </label>
+          </div>
+          <small class="muted note">Saves automatically. Separate from YouTube.</small>
         </section>
 
         <div class="divider" role="separator" aria-hidden="true"></div>
 
         <section class="stack" aria-labelledby="twitter-font-title">
           <div class="section-title" id="twitter-font-title">
-            <span>Twitter/X Font Size</span>
-            <span class="pill">Readability</span>
+            <span>Reading</span>
+            <span class="pill">Text</span>
           </div>
-
-          <p class="muted">Text size for timeline posts in focus mode:</p>
-
+          <p class="muted">Text size for posts in focus mode.</p>
           <label class="checkbox-option">
             <input type="checkbox" id="twitter-use-default-font" checked />
             <div class="checkbox-content">
-              <strong>Use default font (no sizing)</strong>
-              <span class="muted">Leave timeline text at X’s default size.</span>
+              <strong>Use default font (no custom sizing)</strong>
+              <span class="muted">Leave timeline text at X's default size.</span>
             </div>
           </label>
-
           <div class="slider-container" id="twitter-font-size-row">
             <label for="twitter-font-size-slider" class="slider-label">
-              <span>Font Size:</span>
+              <span>Font size</span>
               <span class="slider-value" id="twitter-font-size-value">15px</span>
             </label>
             <input
@@ -295,8 +239,69 @@
             </div>
           </div>
         </section>
+
+        <div class="divider" role="separator" aria-hidden="true"></div>
+
+        <section class="stack" aria-labelledby="twitter-controls-title">
+          <div class="section-title" id="twitter-controls-title">
+            <span>What to hide</span>
+            <span class="pill">Focus</span>
+          </div>
+          <p class="muted">Fine-tune what focus mode removes.</p>
+          <div class="checkbox-group">
+            <label class="checkbox-option">
+              <input
+                type="checkbox"
+                id="twitter-control-hide-sidebar"
+                data-control-key="hideSidebarColumn"
+                checked
+              />
+              <div class="checkbox-content">
+                <strong>Hide right sidebar</strong>
+                <span class="muted">Removes trends and suggestions.</span>
+              </div>
+            </label>
+            <label class="checkbox-option">
+              <input
+                type="checkbox"
+                id="twitter-control-hide-chat"
+                data-control-key="hideChatDrawer"
+                checked
+              />
+              <div class="checkbox-content">
+                <strong>Hide chat drawer</strong>
+                <span class="muted">Hides the direct-message drawer panel.</span>
+              </div>
+            </label>
+            <label class="checkbox-option">
+              <input
+                type="checkbox"
+                id="twitter-control-hide-grok"
+                data-control-key="hideGrokDrawer"
+                checked
+              />
+              <div class="checkbox-content">
+                <strong>Hide Grok drawer</strong>
+                <span class="muted">Removes the Grok side panel.</span>
+              </div>
+            </label>
+            <label class="checkbox-option">
+              <input
+                type="checkbox"
+                id="twitter-control-center-timeline"
+                data-control-key="centerTimeline"
+                checked
+              />
+              <div class="checkbox-content">
+                <strong>Center timeline</strong>
+                <span class="muted">Centers the main column and hides the top app header.</span>
+              </div>
+            </label>
+          </div>
+        </section>
       </section>
 
+      <!-- Excalidraw -->
       <section
         class="website-panel stack"
         data-site-panel="excalidraw"
@@ -305,19 +310,22 @@
       >
         <section class="stack" aria-labelledby="excalidraw-shortcut-title">
           <div class="section-title" id="excalidraw-shortcut-title">
-            <span>Excalidraw</span>
-            <span class="pill">Shortcut</span>
+            <span>Shortcuts</span>
+            <span class="pill">Keys</span>
           </div>
-
-          <p class="muted">
-            <strong>Excalidraw's shortcut:</strong> <kbd>Ctrl/Cmd+B</kbd> — hides or shows the UI
-            wrapper on excalidraw.com.
-          </p>
-
-          <small class="muted note">No settings here yet.</small>
+          <p class="muted"><kbd>Ctrl+B</kbd> on the page (<kbd>⌘B</kbd> on Mac).</p>
+        </section>
+        <section class="stack" aria-labelledby="excalidraw-info-title">
+          <div class="section-title" id="excalidraw-info-title">
+            <span>Canvas</span>
+            <span class="pill">Info</span>
+          </div>
+          <p class="muted">Hides or shows the site UI wrapper on excalidraw.com.</p>
+          <small class="muted note">No extra settings here yet.</small>
         </section>
       </section>
 
+      <!-- Shortcuts -->
       <section
         class="website-panel stack"
         data-site-panel="shortcuts"
@@ -326,23 +334,20 @@
       >
         <section class="stack" aria-labelledby="default-shortcuts-title">
           <div class="section-title" id="default-shortcuts-title">
-            <span>Shortcuts</span>
-            <span class="pill">Default</span>
+            <span>Extension shortcuts</span>
+            <span class="pill">Reference</span>
           </div>
-
           <p class="muted">
             On the page: <kbd>`</kbd> on YouTube, <kbd>Ctrl/Cmd+B</kbd> /
             <kbd>Option+Shift+X</kbd> on Twitter, and <kbd>Ctrl/Cmd+B</kbd> on Excalidraw. Or use
             the extension shortcuts below (customizable in your browser).
           </p>
-
           <div id="default-shortcuts-container">
-            <p class="muted">Loading default shortcuts...</p>
+            <p class="muted">Loading shortcuts…</p>
           </div>
-
           <small class="muted note">
             To change defaults, edit <code>commands</code> in <code>manifest.json</code>. This page
-            doesn’t auto-refresh after you change shortcuts in the browser.
+            doesn't auto-refresh after you change shortcuts in the browser.
           </small>
         </section>
 
@@ -351,16 +356,13 @@
         <section class="stack" aria-labelledby="edit-shortcuts-title">
           <div class="section-title" id="edit-shortcuts-title">
             <span>Edit shortcuts</span>
-            <span class="pill">System</span>
+            <span class="pill">Browser</span>
           </div>
-
           <div id="shortcuts-config-container">
-            <p class="muted">Loading shortcuts configuration...</p>
+            <p class="muted">Loading shortcuts configuration…</p>
           </div>
-
           <small class="muted note">
-            Copy the URL above to open your browser’s shortcut editor. Extensions can’t open it
-            directly.
+            Extensions can't open browser settings pages directly — copy the URL above.
           </small>
         </section>
       </section>

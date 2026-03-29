@@ -10,6 +10,11 @@ kbd {
   border-radius: 4px;
 }
 
+.hero-lead {
+  max-width: 42rem;
+  line-height: 1.6;
+}
+
 /* Status container */
 .status-container {
   display: flex;
@@ -99,6 +104,9 @@ kbd {
 
 .website-panel.is-active {
   display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fade-up var(--motion-enter) var(--ease-smooth);
 }
 
 .slider-marks {
