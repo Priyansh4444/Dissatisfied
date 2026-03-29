@@ -3,7 +3,7 @@
 	"manifest_version": 2,
 	"name": "Dissatisfied",
 	"description": "Get rid of parts of UI when focussing on content. YouTube, Twitter/X, Excalidraw. Toggle with `, Ctrl/Cmd+B, Option+Shift+X.",
-	"version": "1.1.1",
+	"version": "1.1.2",
 	"author": "Pronsh",
 	"icons": {
 		"16": "icon16.png",
